@@ -3,199 +3,151 @@ import { motion } from 'framer-motion'
 import { Leaf } from 'lucide-react'
 
 export default function Menu() {
-  const [activeCategory, setActiveCategory] = useState('waffle')
+  const [activeCategory, setActiveCategory] = useState('trdelnik')
 
   const categories = [
-    { id: 'waffle', name: 'Waffle & Pancake' },
-    { id: 'cikolata', name: 'Çikolata' },
-    { id: 'pasta', name: 'Pasta & Kek' },
-    { id: 'dondurma', name: 'Dondurma' },
-    { id: 'ozel', name: 'Özel Tatlılar' },
+    { id: 'trdelnik', name: 'Trdelnik / Chimney' },
+    { id: 'dolgular', name: 'Dolgular & Soslar' },
+    { id: 'ozel', name: 'Özel Kombinasyonlar' },
     { id: 'icecek', name: 'İçecekler' },
   ]
 
   const menuItems = {
-    waffle: [
+    trdelnik: [
       {
-        name: 'Belçika Waffle',
-        description: 'Orijinal Belçika tarifi, taze meyveler ve akçaağaç şurubu',
-        price: '₺185',
+        name: 'Klasik Trdelnik',
+        description: 'Geleneksel tarif, tarçın ve şeker kaplamalı',
+        price: '₺120',
         vegetarian: true,
       },
       {
-        name: 'Çikolatalı Waffle',
-        description: 'Belçika çikolatası, çikolata sosu ve fındık',
-        price: '₺195',
-        vegetarian: true,
-      },
-      {
-        name: 'Frambuazlı Waffle',
-        description: 'Taze frambuaz, krema şanti ve pudra şekeri',
-        price: '₺205',
-        vegetarian: true,
-      },
-      {
-        name: 'Karamelli Waffle',
-        description: 'Ev yapımı karamel sos, badem ve vanilyalı dondurma',
-        price: '₺215',
-        vegetarian: true,
-      },
-      {
-        name: 'Nutella Pancake',
-        description: 'Yumuşacık pancake, Nutella ve muz dilimleri',
-        price: '₺175',
-        vegetarian: true,
-      },
-      {
-        name: 'Çilekli Pancake',
-        description: 'Taze çilek, krema şanti ve çikolata parçaları',
-        price: '₺185',
-        vegetarian: true,
-      },
-    ],
-    cikolata: [
-      {
-        name: 'Belçika Çikolata Kutusu',
-        description: 'El yapımı premium Belçika çikolataları (12 adet)',
-        price: '₺295',
-        vegetarian: true,
-      },
-      {
-        name: 'Trüf Çikolata',
-        description: 'Özel trüf çikolatalar (6 adet)',
-        price: '₺165',
-        vegetarian: true,
-      },
-      {
-        name: 'Çikolata Fondü',
-        description: 'Eritilmiş Belçika çikolatası, meyveler ve marshmallow',
-        price: '₺225',
-        vegetarian: true,
-      },
-      {
-        name: 'Hot Chocolate Deluxe',
-        description: 'Premium sıcak çikolata, krema şanti ve marshmallow',
-        price: '₺95',
-        vegetarian: true,
-      },
-      {
-        name: 'Brownie Supreme',
-        description: 'Sıcak brownie, vanilyalı dondurma ve çikolata sosu',
+        name: 'Nutella Trdelnik',
+        description: 'Sıcak trdelnik içi Nutella dolgulu',
         price: '₺145',
         vegetarian: true,
       },
-    ],
-    pasta: [
       {
-        name: 'Prag Tatlısı',
-        description: 'Çekoslovakya\'nın meşhur çikolatalı pastası',
-        price: '₺165',
+        name: 'Beyaz Çikolatalı Trdelnik',
+        description: 'Premium beyaz çikolata dolgulu',
+        price: '₺145',
         vegetarian: true,
       },
       {
-        name: 'Tiramisu',
-        description: 'İtalyan klasiği, mascarpone peyniri ve espresso',
+        name: 'Karamelli Trdelnik',
+        description: 'Ev yapımı tuzlu karamel dolgulu',
+        price: '₺150',
+        vegetarian: true,
+      },
+      {
+        name: 'Çilekli Trdelnik',
+        description: 'Taze çilek sosu ve krema dolgulu',
         price: '₺155',
         vegetarian: true,
       },
       {
-        name: 'Cheesecake',
-        description: 'New York usulü cheesecake, meyveli sos',
-        price: '₺145',
-        vegetarian: true,
-      },
-      {
-        name: 'Red Velvet',
-        description: 'Kırmızı kadife pasta, kremalı peynir frosting',
-        price: '₺135',
-        vegetarian: true,
-      },
-      {
-        name: 'Opera Pastası',
-        description: 'Fransız klasiği, kahve ve çikolata katmanları',
-        price: '₺175',
-        vegetarian: true,
-      },
-      {
-        name: 'Frambuazlı Tart',
-        description: 'Taze frambuaz, krema patisserie ve badem',
-        price: '₺155',
-        vegetarian: true,
-      },
-      {
-        name: 'Çikolatalı Sufle',
-        description: 'Sıcak çikolata sufle, vanilyalı dondurma',
+        name: 'Fıstık Ezmeli Trdelnik',
+        description: 'Antep fıstığı ezmesi ve dondurmalı',
         price: '₺165',
         vegetarian: true,
       },
-    ],
-    dondurma: [
       {
-        name: 'Gelato Italiano',
-        description: 'İtalyan dondurması (3 top) - Vanilya, Çikolata, Çilek',
-        price: '₺125',
+        name: 'Lotus Trdelnik',
+        description: 'Lotus bisküvi sosu dolgulu',
+        price: '₺150',
         vegetarian: true,
       },
       {
-        name: 'Affogato',
-        description: 'Vanilyalı gelato üzerine sıcak espresso',
-        price: '₺95',
-        vegetarian: true,
-      },
-      {
-        name: 'Banana Split',
-        description: 'Muz, 3 top dondurma, çikolata sosu ve fıstık',
+        name: 'Çikolata Soslu Trdelnik',
+        description: 'Bitter çikolata sosu ve badem parçaları',
         price: '₺145',
         vegetarian: true,
       },
+    ],
+    dolgular: [
       {
-        name: 'Dondurmalı Waffle',
-        description: 'Waffle, 2 top dondurma, meyveler ve sos',
-        price: '₺175',
+        name: 'Nutella Dolgu',
+        description: 'Premium Nutella dolgulu trdelnik',
+        price: '+₺25',
         vegetarian: true,
       },
       {
-        name: 'Sorbet',
-        description: 'Mevsim meyvelerinden sorbet (3 top)',
-        price: '₺115',
+        name: 'Beyaz Çikolata Dolgu',
+        description: 'Beyaz çikolata dolgulu',
+        price: '+₺25',
+        vegetarian: true,
+      },
+      {
+        name: 'Karamel Dolgu',
+        description: 'Ev yapımı tuzlu karamel',
+        price: '+₺30',
+        vegetarian: true,
+      },
+      {
+        name: 'Çilek Sosu Dolgu',
+        description: 'Taze çilek sosu',
+        price: '+₺30',
+        vegetarian: true,
+      },
+      {
+        name: 'Fıstık Ezmesi Dolgu',
+        description: 'Antep fıstığı ezmesi',
+        price: '+₺45',
+        vegetarian: true,
+      },
+      {
+        name: 'Lotus Sosu',
+        description: 'Lotus bisküvi sosu',
+        price: '+₺30',
+        vegetarian: true,
+      },
+      {
+        name: 'Dondurma Ekstra',
+        description: 'Vanilya, çikolata veya çilekli dondurma topu',
+        price: '+₺20',
+        vegetarian: true,
+      },
+      {
+        name: 'Meyve Ekstra',
+        description: 'Taze mevsim meyveleri',
+        price: '+₺25',
         vegetarian: true,
       },
     ],
     ozel: [
       {
-        name: 'Crème Brûlée',
-        description: 'Fransız klasiği, karamelize şeker kabuğu',
-        price: '₺135',
+        name: 'Trdelnik Duo',
+        description: '2 farklı dolgulu trdelnik (Nutella + Karamel)',
+        price: '₺270',
         vegetarian: true,
       },
       {
-        name: 'Profiterol',
-        description: 'Çikolata soslu profiterol, vanilyalı krema',
-        price: '₺145',
+        name: 'Family Box',
+        description: '4 adet çeşitli dolgulu trdelnik paketi',
+        price: '₺520',
         vegetarian: true,
       },
       {
-        name: 'Künefe',
-        description: 'Özel peynirli künefe, antep fıstığı',
-        price: '₺155',
+        name: 'Trdelnik Sundae',
+        description: 'Trdelnik + 3 top dondurma + soslar',
+        price: '₺195',
         vegetarian: true,
       },
       {
-        name: 'Baklava',
-        description: 'Antep fıstıklı özel baklava',
-        price: '₺125',
+        name: 'Mega Trdelnik',
+        description: 'XXL boy, çifte dolgu, extra garnitürler',
+        price: '₺225',
         vegetarian: true,
       },
       {
-        name: 'Sütlaç',
-        description: 'Fırın sütlaç, tarçın',
-        price: '₺85',
+        name: 'Trdelnik Fondue',
+        description: 'Trdelnik parçaları + çikolata fondü',
+        price: '₺185',
         vegetarian: true,
       },
       {
-        name: 'Magnolia',
-        description: 'Muzlu magnolia, beyaz çikolata',
-        price: '₺135',
+        name: 'Trdelnik Plate',
+        description: 'Mini trdelnikler + meyveler + soslar (2 kişilik)',
+        price: '₺295',
         vegetarian: true,
       },
     ],
@@ -252,14 +204,19 @@ export default function Menu() {
   }
 
   return (
-    <div className="overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="overflow-hidden">
       {/* Hero Section */}
       <section className="relative h-[50vh] flex items-center justify-center">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50 z-10" />
           <img
-            src="https://images.unsplash.com/photo-1488477181946-6428a0291777?w=1920&q=80"
-            alt="Desserts Menu"
+            src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&q=80"
+            alt="Trdelnik Menü"
             className="w-full h-full object-cover"
           />
         </div>
@@ -270,10 +227,10 @@ export default function Menu() {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl md:text-7xl font-display font-bold mb-6">
-              Tatlılarımız
+              Menümüz
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">
-              Dünyanın en lezzetli tatlılarını keşfedin
+              Trdelnik çeşitlerimizi ve özel kombinasyonlarımızı keşfedin
             </p>
           </motion.div>
         </div>
@@ -357,15 +314,15 @@ export default function Menu() {
           >
             <div className="bg-primary-50 border-2 border-primary-200 rounded-2xl p-8 max-w-3xl mx-auto">
               <h3 className="text-2xl font-bold text-primary-900 mb-4">
-                Tatlı Şöleni Menüsü
+                Trdelnik Deneme Menüsü
               </h3>
               <p className="text-gray-700 mb-4">
-                En popüler tatlılarımızdan oluşan özel menümüzü deneyimleyin. 
-                Waffle, çikolata, pasta ve dondurma çeşitlerinden seçkin lezzetler.
+                Farklı dolgularla hazırlanan özel trdelnik menümüzü deneyimleyin. 
+                4 adet mini trdelnik, 2 top dondurma ve çeşitli soslar.
               </p>
-              <p className="text-3xl font-bold text-primary-600">₺395 / Kişi</p>
+              <p className="text-3xl font-bold text-primary-600">₺295 / Kişi</p>
               <p className="text-sm text-gray-600 mt-2">
-                * Minimum 2 kişilik sipariş
+                * En az 2 kişilik sipariş
               </p>
             </div>
           </motion.div>
@@ -381,10 +338,10 @@ export default function Menu() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
-              Tatlı Bir Deneyim Yaşamaya Hazır mısınız?
+              Trdelnik Deneyimi Yaşamaya Hazır mısınız?
             </h2>
             <p className="text-xl mb-8 text-primary-100 max-w-2xl mx-auto">
-              Sipariş verin ve lezzetli tatlılarımızın tadını çıkarın
+              Sipariş verin ve Çekya'nın meşhur tatlısının tadını çıkarın
             </p>
             <a
               href="/iletisim"
@@ -395,6 +352,6 @@ export default function Menu() {
           </motion.div>
         </div>
       </section>
-    </div>
+    </motion.div>
   )
 }

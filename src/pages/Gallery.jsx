@@ -95,7 +95,12 @@ export default function Gallery() {
       : images.filter((img) => img.category === activeCategory)
 
   return (
-    <div className="overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="overflow-hidden">
       {/* Hero Section */}
       <section className="relative h-[50vh] flex items-center justify-center">
         <div className="absolute inset-0 z-0">
@@ -218,6 +223,6 @@ export default function Gallery() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   )
 }

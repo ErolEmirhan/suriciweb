@@ -14,7 +14,7 @@ export default function Footer() {
   ]
 
   const socialLinks = [
-    { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
+    { icon: Instagram, href: 'https://www.instagram.com/makara.konya/', label: 'Instagram' },
     { icon: Facebook, href: 'https://facebook.com', label: 'Facebook' },
     { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
   ]
@@ -29,7 +29,7 @@ export default function Footer() {
               MAKARA
             </h3>
             <p className="text-gray-400 leading-relaxed">
-              Dünyanın en özel tatlılarını, en taze malzemelerle sizler için hazırlıyoruz.
+              Çekya'nın meşhur Trdelnik tatlısını, özel tarifimizle Konya'da sizler için hazırlıyoruz.
             </p>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (

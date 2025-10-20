@@ -1,58 +1,140 @@
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence, useInView } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ChefHat, Users, Award, Heart, ArrowRight, Star } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+
+const AnimatedCounter = ({ value, duration = 1.5 }) => {
+  const [count, setCount] = useState(0)
+  const nodeRef = useRef(null)
+  const isInView = useInView(nodeRef, { once: true })
+
+  useEffect(() => {
+    if (!isInView) return
+
+    const numericValue = parseInt(value.replace(/\D/g, ''))
+    const suffix = value.replace(/[0-9]/g, '')
+    
+    let startTime
+    const animate = (currentTime) => {
+      if (!startTime) startTime = currentTime
+      const progress = Math.min((currentTime - startTime) / (duration * 1000), 1)
+      
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4)
+      const currentCount = Math.floor(easeOutQuart * numericValue)
+      
+      setCount(currentCount + suffix)
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      } else {
+        setCount(value)
+      }
+    }
+    
+    requestAnimationFrame(animate)
+  }, [isInView, value, duration])
+
+  return <span ref={nodeRef}>{count || '0'}</span>
+}
 
 export default function Home() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  
+  const heroImages = [
+    'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&q=80',
+    'https://images.unsplash.com/photo-1587241321921-91a834d82ffc?w=1920&q=80',
+    'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=1920&q=80',
+    'https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=1920&q=80',
+  ]
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
+      )
+    }, 4000) // Her 4 saniyede bir değişir
+
+    return () => clearInterval(interval)
+  }, [heroImages.length])
+
   const stats = [
-    { icon: ChefHat, label: 'Pastane Şefi', value: '8' },
-    { icon: Users, label: 'Mutlu Müşteri', value: '15K+' },
-    { icon: Award, label: 'Özel Tarifler', value: '120+' },
-    { icon: Heart, label: 'Tatlı Çeşitleri', value: '85+' },
+    { icon: ChefHat, label: 'Uzman Şef', value: '5' },
+    { icon: Users, label: 'Mutlu Müşteri', value: '10K+' },
+    { icon: Award, label: 'Özel Tarifler', value: '25+' },
+    { icon: Heart, label: 'Chimney Çeşidi', value: '15+' },
   ]
 
   const concepts = [
     {
-      title: 'Belçika Waffles',
-      description: 'Orijinal Belçika tarifi ile hazırlanan çıtır waffle\'lar',
-      image: 'https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=800&q=80',
+      title: 'Trdelnik / Chimney Cake',
+      description: 'Çekya\'nın meşhur silindir hamur tatlısı, çeşitli soslar ve dolgularla',
+      image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80',
     },
     {
       title: 'Prag Tatlısı',
-      description: 'Çekoslovakya\'nın meşhur çikolatalı pastası',
-      image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80',
+      description: 'Orijinal Çek tarifli trdelnik, özel soslar ve taçlandırmalarla',
+      image: 'https://images.unsplash.com/photo-1587241321921-91a834d82ffc?w=800&q=80',
     },
     {
-      title: 'Belçika Çikolatası',
-      description: 'El yapımı premium Belçika çikolataları',
-      image: 'https://images.unsplash.com/photo-1511381939415-e44015466834?w=800&q=80',
+      title: 'Özel Dolgular',
+      description: 'Nutella, beyaz çikolata, meyve sosları ve daha fazlası',
+      image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&q=80',
     },
   ]
 
   const testimonials = [
     {
       name: 'Ayşe Yılmaz',
-      text: 'Waffle\'ları muhteşem! Belçika\'da yediğim waffle\'lardan bile lezzetliydi. Çikolata sosları ve taze meyveler harika bir kombinasyon oluşturmuş.',
+      text: 'Trdelnik\'i ilk kez tatıyordum, muhteşem bir deneyimdi! Sıcak hamuru, çıtır kaplaması ve içindeki Nutella\'nın uyumu harika. Prag\'a gitmeden Prag tatlısını tatmanın tadı bambaşka.',
       rating: 5,
     },
     {
       name: 'Mehmet Demir',
-      text: 'Prag tatlısını ilk kez denedim ve bayıldım! Çikolata severlerin mutlaka denemesi gereken bir lezzet. Sunumu da çok şık ve özenli.',
+      text: 'Chimney Cake gerçekten efsane! Dışı çıtır çıtır, içi yumuşacık. Karamelli versiyonunu denedim, tarçın kokusunu çok sevdim. Konya\'da böyle özgün bir tatlı mekanı olması harika.',
       rating: 5,
     },
   ]
 
   return (
-    <div className="overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="overflow-hidden">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center">
-        {/* Background Image with Overlay */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image Slider with Overlay */}
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70 z-10" />
-          <img
-            src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1920&q=80"
-            alt="Desserts"
-            className="w-full h-full object-cover"
-          />
+          <AnimatePresence initial={false}>
+            <motion.img
+              key={currentImageIndex}
+              src={heroImages[currentImageIndex]}
+              alt="Trdelnik - Chimney Cake"
+              className="w-full h-full object-cover absolute inset-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            />
+          </AnimatePresence>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70 backdrop-blur-sm z-10" />
+          
+          {/* Slider Indicators */}
+          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+            {heroImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentImageIndex(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  index === currentImageIndex
+                    ? 'bg-white w-8'
+                    : 'bg-white/50 hover:bg-white/75'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Hero Content */}
@@ -62,19 +144,19 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold mb-6">
-              Tatlı Dünyasına
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold mb-6 drop-shadow-2xl" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 10px rgba(0,0,0,0.8)' }}>
+              Trdelnik & Chimney
               <br />
-              <span className="text-primary-500">Hoş Geldiniz</span>
+              <span className="text-primary-400 drop-shadow-2xl" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 10px rgba(0,0,0,0.8)' }}>Prag Tatlısı</span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-3xl mx-auto">
-              Dünyanın en özel tatlılarını, en taze malzemelerle sizler için hazırlıyoruz
+            <p className="text-xl md:text-2xl mb-8 text-white font-medium max-w-3xl mx-auto drop-shadow-xl" style={{ textShadow: '0 3px 15px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.7)' }}>
+              Çekya'nın meşhur silindir tatlısını, özel tarifimiz ve taze malzemelerle Konya'da sunuyoruz
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/menu" className="btn-primary">
+              <Link to="/menu" className="btn-primary shadow-2xl">
                 Tatlılarımızı Keşfedin
               </Link>
-              <Link to="/iletisim" className="btn-secondary">
+              <Link to="/iletisim" className="btn-secondary shadow-2xl">
                 Sipariş Ver
               </Link>
             </div>
@@ -112,7 +194,9 @@ export default function Home() {
                 className="text-center text-white"
               >
                 <stat.icon className="w-12 h-12 mx-auto mb-4" />
-                <div className="text-4xl md:text-5xl font-bold mb-2">{stat.value}</div>
+                <div className="text-4xl md:text-5xl font-bold mb-2">
+                  <AnimatedCounter value={stat.value} duration={1.5} />
+                </div>
                 <div className="text-lg text-primary-100">{stat.label}</div>
               </motion.div>
             ))}
@@ -129,9 +213,9 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="section-title">Özel Tatlılarımız</h2>
+            <h2 className="section-title">Trdelnik Çeşitlerimiz</h2>
             <p className="section-subtitle">
-              Dünya mutfaklarından seçkin tatlılar, özenle hazırlanıyor
+              Çekya'dan gelen geleneksel tarif, modern dokunuşlarla
             </p>
           </motion.div>
 
@@ -222,10 +306,10 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
-              Tatlı Bir Deneyim İçin Sipariş Verin
+              Trdelnik Deneyimini Yaşayın
             </h2>
             <p className="text-xl mb-8 text-primary-100 max-w-2xl mx-auto">
-              Dünyanın en lezzetli tatlılarını keşfedin
+              Çekya'nın meşhur Prag tatlısını Konya'da keşfedin
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -244,7 +328,7 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
-    </div>
+    </motion.div>
   )
 }
 

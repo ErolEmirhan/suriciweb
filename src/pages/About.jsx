@@ -5,58 +5,63 @@ export default function About() {
   const values = [
     {
       icon: Heart,
-      title: 'Taze Malzemeler',
-      description: 'En taze ve kaliteli malzemeleri özenle seçiyoruz',
+      title: 'Taze & Sıcak',
+      description: 'Her trdelnik sipariş anında taze olarak hazırlanır',
     },
     {
       icon: Award,
-      title: 'Kalite Standartları',
-      description: 'Uluslararası kalite standartlarında hizmet sunuyoruz',
+      title: 'Geleneksel Tarif',
+      description: 'Orijinal Çek tarifine sadık kalarak üretiyoruz',
     },
     {
       icon: Users,
       title: 'Müşteri Memnuniyeti',
-      description: 'Her misafirimize özel ilgi ve sıcak bir ortam sunuyoruz',
+      description: 'Her misafirimize sıcak ve samimi bir hizmet sunuyoruz',
     },
     {
       icon: TrendingUp,
-      title: 'Yenilikçi Tarifler',
-      description: 'Klasik tariflere modern dokunuşlar katıyoruz',
+      title: 'Modern Dolgular',
+      description: 'Geleneksel tarife modern ve yaratıcı dolgular ekliyoruz',
     },
   ]
 
   const timeline = [
     {
-      year: '2018',
+      year: '2020',
       title: 'Kuruluş',
-      description: 'Dünya tatlılarını Türkiye\'ye getirme vizyonuyla yola çıktık',
-    },
-    {
-      year: '2019',
-      title: 'Genişleme',
-      description: 'Belçika waffle ve çikolata çeşitlerimizi menümüze ekledik',
+      description: 'Trdelnik\'i Konya\'ya getirme hayaliyle yola çıktık',
     },
     {
       year: '2021',
-      title: 'Ödüller',
-      description: 'En iyi tatlı mekanı ödülünü aldık',
+      title: 'İlk Şubemiz',
+      description: 'Konya\'da ilk Trdelnik konseptli mekanımızı açtık',
     },
     {
-      year: '2024',
+      year: '2023',
+      title: 'Özel Tarifler',
+      description: '15+ farklı dolgu ve sos çeşidimizi geliştirdik',
+    },
+    {
+      year: '2025',
       title: 'Bugün',
-      description: '15.000+ mutlu müşteri ve 85+ tatlı çeşidi ile hizmet veriyoruz',
+      description: '10.000+ mutlu müşteri ve benzersiz Trdelnik deneyimi sunuyoruz',
     },
   ]
 
   return (
-    <div className="overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -100 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="overflow-hidden">
       {/* Hero Section */}
       <section className="relative h-[60vh] flex items-center justify-center">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50 z-10" />
           <img
-            src="https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=1920&q=80"
-            alt="About Us"
+            src="https://images.unsplash.com/photo-1587241321921-91a834d82ffc?w=1920&q=80"
+            alt="Trdelnik Hazırlığı"
             className="w-full h-full object-cover"
           />
         </div>
@@ -70,7 +75,7 @@ export default function About() {
               Hakkımızda
             </h1>
             <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">
-              Tatlı tutkusuyla başlayan bir hikaye
+              Çekya'dan Konya'ya uzanan bir lezzet yolculuğu
             </p>
           </motion.div>
         </div>
@@ -91,20 +96,21 @@ export default function About() {
               </h2>
               <div className="space-y-4 text-gray-700 leading-relaxed text-lg">
                 <p>
-                  Makara Dessert olarak, dünyanın en özel tatlılarını sizlerle buluşturma 
-                  tutkusuyla yola çıktık. Belçika'nın meşhur waffle'larından Çekoslovakya'nın 
-                  efsanevi Prag tatlısına, İtalyan gelato'sundan Fransız patisserie'sine kadar 
-                  uzanan bir lezzet yolculuğunda sizleri ağırlıyoruz.
+                  Makara olarak, Çekya'nın (Çek Cumhuriyeti) sokak lezzetlerinin başında gelen 
+                  Trdelnik'i Konya'ya getirme tutkusuyla yola çıktık. Trdelnik, Chimney Cake veya 
+                  Prag Tatlısı olarak da bilinen bu eşsiz tatlı, 18. yüzyıldan beri Orta Avrupa'nın 
+                  en sevilen geleneksel lezzetlerinden biri.
                 </p>
                 <p>
-                  Her tatlımız, orijinal tariflerine sadık kalınarak ve en taze malzemelerle 
-                  özenle hazırlanmaktadır. Pastane şeflerimiz, yıllarca süren deneyimleri ve 
-                  tutkularıyla her tatlıyı bir sanat eserine dönüştürüyorlar.
+                  Silindir şeklindeki bu özel hamur tatlısı, özel çubuklar üzerinde açık ateşte 
+                  pişirilir ve sıcakken tarçın-şeker karışımına bulanır. Dışı çıtır çıtır, içi 
+                  yumuşacık olan bu muhteşem tatlıyı, çeşitli dolgular ve soslarla zenginleştirerek 
+                  modern dokunuşlar katıyoruz.
                 </p>
                 <p>
-                  15.000'den fazla mutlu müşterimize hizmet vermekten ve 85'ten fazla tatlı 
-                  çeşidi sunmaktan gurur duyuyoruz. Her misafirimiz bizim için özeldir ve 
-                  onlara unutulmaz bir tatlı deneyimi yaşatmak için çalışıyoruz.
+                  10.000'den fazla mutlu müşterimize hizmet vermekten ve 15'ten fazla özel trdelnik 
+                  çeşidi sunmaktan gurur duyuyoruz. Her misafirimize taze, sıcak ve özenle hazırlanmış 
+                  trdelnikler sunarak unutulmaz bir lezzet deneyimi yaşatıyoruz.
                 </p>
               </div>
             </motion.div>
@@ -118,23 +124,23 @@ export default function About() {
             >
               <div className="grid grid-cols-2 gap-4">
                 <img
-                  src="https://images.unsplash.com/photo-1587241321921-91a834d82ffc?w=600&q=80"
-                  alt="Dessert Making"
+                  src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&q=80"
+                  alt="Trdelnik Hazırlanıyor"
                   className="rounded-2xl shadow-xl"
                 />
                 <img
-                  src="https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=600&q=80"
-                  alt="Chef Preparing"
+                  src="https://images.unsplash.com/photo-1587241321921-91a834d82ffc?w=600&q=80"
+                  alt="Şef Trdelnik Yapıyor"
                   className="rounded-2xl shadow-xl mt-8"
                 />
                 <img
-                  src="https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=600&q=80"
-                  alt="Dessert Plating"
+                  src="https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80"
+                  alt="Tatlı Sunumu"
                   className="rounded-2xl shadow-xl -mt-8"
                 />
                 <img
                   src="https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=600&q=80"
-                  alt="Cafe Ambiance"
+                  alt="Cafe Atmosferi"
                   className="rounded-2xl shadow-xl"
                 />
               </div>
@@ -230,7 +236,7 @@ export default function About() {
               Bizi Ziyaret Edin
             </h2>
             <p className="text-xl mb-8 text-primary-100 max-w-2xl mx-auto">
-              Eşsiz tatlılarımızı ve sıcak atmosferimizi deneyimleyin
+              Taze trdelniklerimizi ve sıcak atmosferimizi deneyimleyin
             </p>
             <a
               href="/iletisim"
@@ -241,6 +247,6 @@ export default function About() {
           </motion.div>
         </div>
       </section>
-    </div>
+    </motion.div>
   )
 }
