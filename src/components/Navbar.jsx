@@ -28,17 +28,17 @@ export default function Navbar() {
     <nav
       className={`fixed w-full z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-white shadow-lg py-4'
-          : 'bg-gradient-to-b from-black/60 to-transparent py-4'
+          ? 'bg-white shadow-lg py-2'
+          : 'bg-gradient-to-b from-black/60 to-transparent py-2'
       }`}
     >
       <div className="container-custom">
-        {/* Logo - Always Centered on Mobile */}
-        <div className="flex justify-center lg:justify-start mb-4 lg:mb-0">
-          <Link to="/" className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-4">
+          {/* Logo - Left Side */}
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="text-2xl md:text-3xl font-display font-bold"
+              className="text-xl md:text-2xl font-display font-bold"
             >
               <span className={`${scrolled ? 'text-primary-600' : 'text-white'}`}>
                 MAKARA
@@ -48,38 +48,38 @@ export default function Navbar() {
               src={makaraLogo}
               alt="Makara Logo"
               whileHover={{ scale: 1.1, rotate: 5 }}
-              className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-white shadow-lg"
+              className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-white shadow-lg"
             />
           </Link>
-        </div>
 
-         {/* Navigation Cards - Always Visible */}
-         <div className="flex flex-wrap justify-center gap-2 lg:gap-3">
-           {navLinks.map((link, index) => (
-             <Link
-               key={link.path}
-               to={link.path}
-             >
-               <motion.div
-                 initial={{ opacity: 0, y: -10 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 transition={{ delay: index * 0.05 }}
-                 whileHover={{ scale: 1.05, y: -2 }}
-                 className={`px-4 py-2 rounded-xl font-medium transition-all duration-300 ${
-                   location.pathname === link.path
-                     ? scrolled
-                       ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg'
-                       : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-xl'
-                     : scrolled
-                     ? 'bg-white border-2 border-gray-200 text-gray-700 hover:border-primary-400 hover:text-primary-600 shadow-sm'
-                     : 'bg-white/20 backdrop-blur-md border-2 border-white/30 text-white hover:bg-white/30'
-                 }`}
-               >
-                 <span className="text-sm lg:text-base whitespace-nowrap">{link.name}</span>
-               </motion.div>
-             </Link>
-           ))}
-         </div>
+          {/* Navigation Cards - Right Side */}
+          <div className="flex flex-wrap justify-end gap-1.5 md:gap-2">
+            {navLinks.map((link, index) => (
+              <Link
+                key={link.path}
+                to={link.path}
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  className={`px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-medium transition-all duration-300 ${
+                    location.pathname === link.path
+                      ? scrolled
+                        ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg'
+                        : 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-xl'
+                      : scrolled
+                      ? 'bg-white border-2 border-gray-200 text-gray-700 hover:border-primary-400 hover:text-primary-600 shadow-sm'
+                      : 'bg-white/20 backdrop-blur-md border-2 border-white/30 text-white hover:bg-white/30'
+                  }`}
+                >
+                  <span className="text-xs md:text-sm whitespace-nowrap">{link.name}</span>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </nav>
   )
