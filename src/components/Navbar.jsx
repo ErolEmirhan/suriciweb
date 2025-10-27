@@ -51,9 +51,8 @@ export default function Navbar() {
                 className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border border-gray-200 group-hover:border-primary-400 transition-colors"
               />
             </motion.div>
-            <span className="text-2xl md:text-3xl font-display font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-primary-500 to-primary-600 group-hover:from-primary-700 group-hover:via-primary-600 group-hover:to-primary-700 transition-all duration-300 relative">
-              <span className="relative z-10">MAKARA</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-primary-500 via-white to-primary-500 opacity-30 blur-md group-hover:opacity-50 transition-opacity duration-300"></span>
+            <span className="text-2xl md:text-3xl font-display font-black tracking-wider text-primary-600 group-hover:text-primary-700 transition-colors">
+              MAKARA
             </span>
           </Link>
 
