@@ -101,32 +101,6 @@ export default function Gallery() {
       exit={{ opacity: 0, x: -100 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative h-[50vh] flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50 z-10" />
-          <img
-            src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1920&q=80"
-            alt="Gallery"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="container-custom relative z-20 text-center text-white">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-5xl md:text-7xl font-display font-bold mb-6">
-              Galeri
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">
-              Tatlılarımızı ve atmosferimizi keşfedin
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Gallery Section */}
       <section className="py-24 bg-gray-50">
         <div className="container-custom">

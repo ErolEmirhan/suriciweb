@@ -16,7 +16,7 @@ export default function InstagramFloatingButton() {
     >
       <Instagram className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />
       <span className="font-semibold text-base whitespace-nowrap">
-        Bizi Takip Et
+        Bizi Takip Edin
       </span>
     </motion.a>
   )

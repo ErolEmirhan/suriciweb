@@ -14,7 +14,7 @@ export default function ReservationFloatingButton() {
     >
       <Phone className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />
       <span className="font-semibold text-base whitespace-nowrap">
-        Rezervasyon
+        Ara
       </span>
     </motion.a>
   )

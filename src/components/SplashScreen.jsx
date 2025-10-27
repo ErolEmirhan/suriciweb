@@ -1,7 +1,17 @@
 import { motion } from 'framer-motion'
+import { useEffect } from 'react'
 import makaraLogo from '../assets/makara.png'
 
 export default function SplashScreen({ onFinish }) {
+  useEffect(() => {
+    // Splash screen her zaman 2.5 saniye görünür
+    const timer = setTimeout(() => {
+      onFinish()
+    }, 2500)
+
+    return () => clearTimeout(timer)
+  }, [onFinish])
+
   return (
     <motion.div
       className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center"
@@ -9,10 +19,6 @@ export default function SplashScreen({ onFinish }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      onAnimationComplete={() => {
-        // Splash screen 2 saniye göründükten sonra kaybolur
-        setTimeout(onFinish, 2000)
-      }}
     >
       {/* Logo */}
       <motion.div

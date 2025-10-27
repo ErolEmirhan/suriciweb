@@ -55,32 +55,6 @@ export default function About() {
       exit={{ opacity: 0, x: -100 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative h-[60vh] flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50 z-10" />
-          <img
-            src="https://images.unsplash.com/photo-1587241321921-91a834d82ffc?w=1920&q=80"
-            alt="Trdelnik Hazırlığı"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="container-custom relative z-20 text-center text-white">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-5xl md:text-7xl font-display font-bold mb-6">
-              Hakkımızda
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">
-              Çekya'dan Konya'ya uzanan bir lezzet yolculuğu
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Story Section */}
       <section className="py-24 bg-white">
         <div className="container-custom">

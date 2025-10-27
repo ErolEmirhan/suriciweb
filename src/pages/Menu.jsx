@@ -1,16 +1,35 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Leaf } from 'lucide-react'
+import { Leaf, UtensilsCrossed, IceCreamBowl, X } from 'lucide-react'
+import makaraLogo from '../assets/makara.png'
+import trdelnikImage from '../assets/trdelnik.png'
 
 export default function Menu() {
+  const [mainCategory, setMainCategory] = useState('tatlilar')
   const [activeCategory, setActiveCategory] = useState('trdelnik')
+  const [selectedImage, setSelectedImage] = useState({ url: null, name: null })
 
-  const categories = [
-    { id: 'trdelnik', name: 'Trdelnik / Chimney' },
-    { id: 'dolgular', name: 'Dolgular & Soslar' },
-    { id: 'ozel', name: 'Özel Kombinasyonlar' },
-    { id: 'icecek', name: 'İçecekler' },
+  const mainCategories = [
+    { id: 'tatlilar', name: 'Tatlılar', icon: IceCreamBowl },
+    { id: 'yemekler', name: 'Yemekler', icon: UtensilsCrossed },
   ]
+
+  const subCategories = {
+    tatlilar: [
+      { id: 'trdelnik', name: 'Trdelnik / Chimney' },
+      { id: 'dolgular', name: 'Dolgular & Soslar' },
+      { id: 'ozel', name: 'Özel Kombinasyonlar' },
+      { id: 'icecek', name: 'İçecekler' },
+    ],
+    yemekler: []
+  }
+
+  const categoryImages = {
+    trdelnik: ['1587241321921-91a834d82ffc', '1509440159596-0249088772ff', '1562376552-0d160a2f238d', '1486427944299-d1955d23e34d', '1488477181946-6428a0291777', '1497534547324-0ebb3f052e88', '1464349095431-e9a21285b5f3', '1551024506-0bccd828d307'],
+    dolgular: ['1587241321921-91a834d82ffc', '1511381939415-e44015466834', '1578985545062-69928b1d9587', '1562376552-0d160a2f238d', '1551024506-0bccd828d307', '1486427944299-d1955d23e34d', '1497534547324-0ebb3f052e88'],
+    ozel: ['1563805042-7684c019e1cb', '1495147466023-ac5c588e2e94', '1570197788417-0e82375c9371', '1551024506-0bccd828d307', '1486427944299-d1955d23e34d', '1464349095431-e9a21285b5f3'],
+    icecek: ['1556909172-54557c7e4fb7', '1497534547324-0ebb3f052e88', '1453614512-6d9ce88648b8', '1461020133040-9e4c0a5c6c98', '1511381939415-e44015466834', '1486427944299-d1955d23e34d', '1551024506-0bccd828d307', '1578985545062-69928b1d9587'],
+  }
 
   const menuItems = {
     trdelnik: [
@@ -19,6 +38,7 @@ export default function Menu() {
         description: 'Geleneksel tarif, tarçın ve şeker kaplamalı',
         price: '₺120',
         vegetarian: true,
+        image: trdelnikImage,
       },
       {
         name: 'Nutella Trdelnik',
@@ -54,6 +74,7 @@ export default function Menu() {
         name: 'Lotus Trdelnik',
         description: 'Lotus bisküvi sosu dolgulu',
         price: '₺150',
+        oldPrice: '₺180',
         vegetarian: true,
       },
       {
@@ -210,55 +231,56 @@ export default function Menu() {
       exit={{ opacity: 0, x: -100 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative h-[50vh] flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/50 z-10" />
-          <img
-            src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&q=80"
-            alt="Trdelnik Menü"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="container-custom relative z-20 text-center text-white">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-5xl md:text-7xl font-display font-bold mb-6">
-              Menümüz
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-200 max-w-3xl mx-auto">
-              Trdelnik çeşitlerimizi ve özel kombinasyonlarımızı keşfedin
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Menu Section */}
       <section className="py-24 bg-gray-50">
         <div className="container-custom">
-          {/* Category Tabs */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-wrap justify-center gap-4 mb-16"
-          >
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setActiveCategory(category.id)}
-                className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                  activeCategory === category.id
-                    ? 'bg-primary-600 text-white shadow-lg scale-105'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {category.name}
-              </button>
-            ))}
-          </motion.div>
+          {/* Main Category Tabs */}
+          <div className="mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-center gap-4 mb-0"
+            >
+              {mainCategories.map((category) => {
+                const Icon = category.icon
+                const isActive = mainCategory === category.id
+                const isYemekler = category.id === 'yemekler'
+                
+                // Yemekler için farklı renkler
+                const activeClass = isYemekler 
+                  ? 'bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 text-white shadow-2xl'
+                  : 'bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white shadow-2xl'
+                
+                const inactiveClass = isYemekler
+                  ? 'bg-white text-emerald-600 hover:bg-emerald-50 shadow-lg'
+                  : 'bg-white text-primary-600 hover:bg-primary-50 shadow-lg'
+                
+                return (
+                  <motion.button
+                    key={category.id}
+                    onClick={() => {
+                      setMainCategory(category.id)
+                      if (category.id === 'tatlilar') {
+                        setActiveCategory('trdelnik')
+                      }
+                    }}
+                    whileHover={{ scale: 1.05, y: -4 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`relative px-10 py-5 rounded-2xl font-bold text-lg transition-all duration-300 border-2 ${
+                      isActive 
+                        ? `${activeClass} border-transparent` 
+                        : `${inactiveClass} border-gray-200 hover:border-gray-300`
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon size={24} />
+                      <span>{category.name}</span>
+                    </div>
+                  </motion.button>
+                )
+              })}
+            </motion.div>
+          </div>
 
           {/* Menu Items */}
           <motion.div
@@ -266,66 +288,144 @@ export default function Menu() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="max-w-4xl mx-auto"
           >
-            <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12">
-              <h2 className="text-4xl font-display font-bold text-center mb-12 text-gray-900">
-                {categories.find((cat) => cat.id === activeCategory)?.name}
-              </h2>
-              <div className="space-y-8">
-                {menuItems[activeCategory].map((item, index) => (
-                  <motion.div
-                    key={item.name}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="border-b border-gray-200 pb-6 last:border-0 last:pb-0"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-xl font-bold text-gray-900">
-                          {item.name}
-                        </h3>
-                        {item.vegetarian && (
-                          <span className="inline-flex items-center text-green-600">
-                            <Leaf className="w-5 h-5" />
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-2xl font-bold text-primary-600 ml-4">
-                        {item.price}
-                      </span>
+            {mainCategory === 'tatlilar' ? (
+              /* Tatlılar - Sidebar + Content Layout */
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+                {/* Sidebar - Sub Categories */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="w-full lg:w-64 flex-shrink-0"
+                >
+                  <div className="bg-white rounded-2xl p-3 shadow-lg border border-gray-200">
+                    <h3 className="text-sm font-bold text-gray-900 mb-2 px-2">Kategoriler</h3>
+                    <div className="space-y-1.5">
+                      {subCategories.tatlilar.map((category) => (
+                        <button
+                          key={category.id}
+                          onClick={() => setActiveCategory(category.id)}
+                          className={`w-full px-3 py-2 rounded-lg text-left font-medium text-sm transition-all duration-300 ${
+                            activeCategory === category.id
+                              ? 'bg-primary-600 text-white shadow-md'
+                              : 'bg-gray-50 text-gray-700 hover:bg-primary-50 hover:text-primary-600'
+                          }`}
+                        >
+                          {category.name}
+                        </button>
+                      ))}
                     </div>
-                    <p className="text-gray-600 leading-relaxed">
-                      {item.description}
-                    </p>
-                  </motion.div>
-                ))}
+                  </div>
+                </motion.div>
+
+                {/* Content */}
+                <div className="flex-1">
+                  <h2 className="text-3xl font-display font-bold mb-8 text-gray-900">
+                    {subCategories.tatlilar.find((cat) => cat.id === activeCategory)?.name}
+                  </h2>
+                  <div className="space-y-4">
+                    {menuItems[activeCategory].map((item, index) => (
+                      <motion.div
+                        key={item.name}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.02 }}
+                        className="relative flex items-center gap-6 p-6 rounded-3xl bg-white border-2 border-gray-200 shadow-xl transition-all duration-500 group overflow-hidden"
+                      >
+                        {/* Makara Logo - Bottom Right */}
+                        <img
+                          src={makaraLogo}
+                          alt="Makara"
+                          className="absolute bottom-3 right-3 w-10 h-10 opacity-5"
+                        />
+                        {/* Product Image - 1x1 Square */}
+                        <div 
+                          className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0 cursor-pointer"
+                          onClick={() => setSelectedImage({
+                            url: item.image || `https://images.unsplash.com/photo-${categoryImages[activeCategory][index % categoryImages[activeCategory].length]}?w=800&h=800&fit=crop&q=90`,
+                            name: item.name
+                          })}
+                        >
+                          <div className="w-full h-full rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                            <img
+                              src={item.image || `https://images.unsplash.com/photo-${categoryImages[activeCategory][index % categoryImages[activeCategory].length]}?w=400&h=400&fit=crop&q=80`}
+                              alt={item.name}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Product Info - Name on top, Price below */}
+                        <div className="flex-1 min-w-0">
+                          <div className="mb-2">
+                            <h3 className="text-base md:text-lg font-semibold text-gray-900 whitespace-nowrap">
+                              {item.name}
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="inline-block px-5 py-2.5 rounded-2xl bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700 text-white text-xl md:text-2xl font-bold whitespace-nowrap shadow-lg">
+                              {item.price}
+                            </span>
+                            {item.oldPrice && (
+                              <span className="text-red-500 line-through text-lg md:text-xl font-bold opacity-70">
+                                {item.oldPrice}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+            /* Yemekler - Coming Soon Message */
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white rounded-3xl shadow-xl p-12 md:p-16 text-center">
+                <div className="max-w-md mx-auto">
+                  <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-12 h-12 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <h2 className="text-4xl font-display font-bold mb-4 text-gray-900">
+                    Yemekler
+                  </h2>
+                  <p className="text-2xl font-semibold text-primary-600 mb-2">
+                    Çok Yakında Sizlerle
+                  </p>
+                  <p className="text-gray-600 text-lg">
+                    Lezzet dolu yemek menümüz yakında hazır olacak
+                  </p>
+                </div>
               </div>
             </div>
+            )}
           </motion.div>
 
-          {/* Special Menu Note */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mt-16 text-center"
-          >
-            <div className="bg-primary-50 border-2 border-primary-200 rounded-2xl p-8 max-w-3xl mx-auto">
-              <h3 className="text-2xl font-bold text-primary-900 mb-4">
-                Trdelnik Deneme Menüsü
-              </h3>
-              <p className="text-gray-700 mb-4">
-                Farklı dolgularla hazırlanan özel trdelnik menümüzü deneyimleyin. 
-                4 adet mini trdelnik, 2 top dondurma ve çeşitli soslar.
-              </p>
-              <p className="text-3xl font-bold text-primary-600">₺295 / Kişi</p>
-              <p className="text-sm text-gray-600 mt-2">
-                * En az 2 kişilik sipariş
-              </p>
-            </div>
-          </motion.div>
+          {/* Special Menu Note - Only show for Tatlılar */}
+          {mainCategory === 'tatlilar' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mt-16 text-center"
+            >
+              <div className="bg-primary-50 border-2 border-primary-200 rounded-2xl p-8 max-w-3xl mx-auto">
+                <h3 className="text-2xl font-bold text-primary-900 mb-4">
+                  Trdelnik Deneme Menüsü
+                </h3>
+                <p className="text-gray-700 mb-4">
+                  Farklı dolgularla hazırlanan özel trdelnik menümüzü deneyimleyin. 
+                  4 adet mini trdelnik, 2 top dondurma ve çeşitli soslar.
+                </p>
+                <p className="text-3xl font-bold text-primary-600">₺295 / Kişi</p>
+                <p className="text-sm text-gray-600 mt-2">
+                  * En az 2 kişilik sipariş
+                </p>
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -352,6 +452,50 @@ export default function Menu() {
           </motion.div>
         </div>
       </section>
+
+      {/* Image Lightbox Modal */}
+      {selectedImage.url && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setSelectedImage({ url: null, name: null })}
+        >
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.8 }}
+            className="max-w-4xl w-full relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative">
+              <img
+                src={selectedImage.url}
+                alt="Büyük Görünüm"
+                className="w-full h-auto rounded-2xl shadow-2xl"
+              />
+              
+              {/* Product Name - Top Left */}
+              {selectedImage.name && (
+                <div className="absolute top-4 left-4 px-6 py-3 rounded-full bg-gradient-to-r from-primary-600 via-primary-500 to-primary-600 backdrop-blur-sm bg-white/90">
+                  <h3 className="text-white text-lg font-bold shadow-lg">
+                    {selectedImage.name}
+                  </h3>
+                </div>
+              )}
+              
+              {/* Close Button - Top Right */}
+              <button
+                onClick={() => setSelectedImage({ url: null, name: null })}
+                className="absolute top-4 right-4 bg-white rounded-full p-3 hover:bg-gray-100 transition-colors shadow-lg"
+              >
+                <X className="w-6 h-6 text-gray-800" />
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </motion.div>
   )
 }
