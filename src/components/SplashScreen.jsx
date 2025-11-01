@@ -74,15 +74,37 @@ export default function SplashScreen({ onFinish }) {
         </motion.h1>
       </div>
 
-      {/* Subtitle with fade in */}
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 1.2 }}
-        className="text-lg md:text-xl text-gray-600 mt-4 font-medium tracking-wide"
+      {/* Subtitle with fade in - Categories */}
+      <motion.div
+        className="mt-8 flex flex-col items-center gap-4"
       >
-        Trdelnik & Chimney Cake
-      </motion.p>
+        {['Trdelnik', 'Fransız Pastaları', 'Kruvasan Çeşitleri', 'Waffle Çeşitleri'].map((item, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              duration: 0.6, 
+              delay: 1.2 + index * 0.12,
+              ease: [0.25, 0.1, 0.25, 1]
+            }}
+            className="relative"
+          >
+            <p className="text-lg md:text-xl font-medium text-gray-700 tracking-wide">
+              {item}
+            </p>
+            <motion.div
+              className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary-400 to-transparent"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ 
+                duration: 0.4, 
+                delay: 1.3 + index * 0.12 
+              }}
+            />
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Loading dots */}
       <div className="flex gap-2 mt-8">

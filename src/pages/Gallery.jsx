@@ -8,10 +8,10 @@ export default function Gallery() {
 
   const categories = [
     { id: 'all', name: 'Tümü' },
-    { id: 'waffle', name: 'Waffle & Pancake' },
-    { id: 'chocolate', name: 'Çikolata' },
-    { id: 'cake', name: 'Pasta & Kek' },
-    { id: 'icecream', name: 'Dondurma' },
+    { id: 'trdelnik', name: 'Trdelnik' },
+    { id: 'fransiz', name: 'Fransız Pastaları' },
+    { id: 'kruvasan', name: 'Kruvasan Çeşitleri' },
+    { id: 'waffle', name: 'Waffle Çeşitleri' },
   ]
 
   const images = [
@@ -108,13 +108,13 @@ export default function Gallery() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-wrap justify-center gap-4 mb-12"
+            className="flex flex-wrap justify-center gap-2 mb-12"
           >
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-300 whitespace-nowrap ${
                   activeCategory === category.id
                     ? 'bg-primary-600 text-white shadow-lg scale-105'
                     : 'bg-white text-gray-700 hover:bg-gray-100'

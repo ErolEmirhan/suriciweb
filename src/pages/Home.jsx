@@ -42,7 +42,7 @@ export default function Home() {
   
   const heroImages = [
     'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&q=80',
-    'https://images.unsplash.com/photo-1587241321921-91a834d82ffc?w=1920&q=80',
+    'https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1920&q=80',
     'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=1920&q=80',
     'https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=1920&q=80',
   ]
@@ -103,7 +103,7 @@ export default function Home() {
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="overflow-hidden">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative h-screen flex items-start pt-20 md:pt-24 overflow-hidden">
         {/* Background Image Slider with Overlay */}
         <div className="absolute inset-0 z-0">
           <AnimatePresence initial={false}>
@@ -118,7 +118,28 @@ export default function Home() {
               transition={{ duration: 0.6, ease: "easeInOut" }}
             />
           </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/70 backdrop-blur-sm z-10" />
+          {/* Modern Professional Overlay */}
+          <div className="absolute inset-0 z-10">
+            {/* Base Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/70" />
+            
+            {/* Radial Gradient from corners */}
+            <div className="absolute inset-0 bg-gradient-radial from-primary-600/20 via-transparent to-transparent opacity-50" 
+                 style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(221, 64, 134, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(221, 64, 134, 0.1) 0%, transparent 50%)' }} />
+            
+            {/* Subtle mesh pattern overlay */}
+            <div className="absolute inset-0 opacity-10"
+                 style={{ 
+                   backgroundImage: `
+                     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
+                   `,
+                   backgroundSize: '50px 50px'
+                 }} />
+            
+            {/* Backdrop blur for depth */}
+            <div className="absolute inset-0 backdrop-blur-[2px]" />
+          </div>
           
           {/* Slider Indicators */}
           <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
@@ -138,28 +159,25 @@ export default function Home() {
         </div>
 
         {/* Hero Content */}
-        <div className="container-custom relative z-20 text-center text-white">
+        <div className="container-custom relative z-20 text-center text-white pt-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+              <Link to="/menu" className="btn-primary shadow-2xl">
+                Tatlılarımızı Keşfedin
+              </Link>
+            </div>
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold mb-6 drop-shadow-2xl" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 10px rgba(0,0,0,0.8)' }}>
               Trdelnik & Chimney
               <br />
               <span className="text-primary-400 drop-shadow-2xl" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 10px rgba(0,0,0,0.8)' }}>Prag Tatlısı</span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-white font-medium max-w-3xl mx-auto drop-shadow-xl" style={{ textShadow: '0 3px 15px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.7)' }}>
-              Çekya'nın meşhur silindir tatlısını, özel tarifimiz ve taze malzemelerle Konya'da sunuyoruz
+            <p className="text-xl md:text-2xl mb-8 text-white font-medium max-w-4xl mx-auto drop-shadow-xl" style={{ textShadow: '0 3px 15px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.7)' }}>
+              Çekya'nın meşhur silindir tatlısı Trdelnik, Belçika'nın nefes kesen waffle'ları, Fransız pastahanelerinin zarif pastaları ve Paris'in özel kruvasanları... Hepsi gerçek Belçika çikolatasıyla buluşuyor
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/menu" className="btn-primary shadow-2xl">
-                Tatlılarımızı Keşfedin
-              </Link>
-              <Link to="/iletisim" className="btn-secondary shadow-2xl">
-                Sipariş Ver
-              </Link>
-            </div>
           </motion.div>
         </div>
 
@@ -312,14 +330,8 @@ export default function Home() {
               Çekya'nın meşhur Prag tatlısını Konya'da keşfedin
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/iletisim"
-                className="bg-white text-primary-600 hover:bg-gray-100 font-semibold py-4 px-10 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
-              >
-                Sipariş Ver
-              </Link>
               <a
-                href="tel:+905060404200"
+                href="tel:+905015431010"
                 className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary-600 font-semibold py-4 px-10 rounded-full transition-all duration-300"
               >
                 Hemen Ara

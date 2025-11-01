@@ -3,8 +3,9 @@ import { motion } from 'framer-motion'
 
 export default function LocationFloatingButton() {
   const openGoogleMaps = () => {
-    const lat = 37.862186747238425
-    const lng = 32.47132545977872
+    // 37°51'42.0"N 32°28'18.5"E koordinatları decimal'a çevrildi
+    const lat = 37.8616667  // 37°51'42.0"N
+    const lng = 32.4718056  // 32°28'18.5"E
     const url = `https://www.google.com/maps?q=${lat},${lng}`
     window.open(url, '_blank')
   }
@@ -21,7 +22,7 @@ export default function LocationFloatingButton() {
     >
       <MapPin className="w-6 h-6 text-blue-600 group-hover:text-blue-700 group-hover:rotate-12 transition-all duration-300" />
       <span className="font-semibold text-base whitespace-nowrap">
-        Konum
+        Yol Tarifi Al
       </span>
     </motion.button>
   )

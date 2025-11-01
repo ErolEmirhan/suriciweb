@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 export default function ReservationFloatingButton() {
   return (
     <motion.a
-      href="tel:+905060404200"
+      href="tel:+905015431010"
       className="flex items-center gap-3 bg-gradient-to-r from-green-500 to-green-600 text-white px-5 py-4 rounded-full shadow-2xl hover:shadow-green-500/50 transition-all duration-300 group"
       whileHover={{ scale: 1.05, y: -2 }}
       whileTap={{ scale: 0.95 }}

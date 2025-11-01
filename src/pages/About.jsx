@@ -200,11 +200,12 @@ export default function About() {
 
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-        <div className="container-custom text-center">
+        <div className="container-custom">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            className="text-center"
           >
             <h2 className="text-4xl md:text-5xl font-display font-bold mb-6">
               Bizi Ziyaret Edin
@@ -212,12 +213,6 @@ export default function About() {
             <p className="text-xl mb-8 text-primary-100 max-w-2xl mx-auto">
               Taze trdelniklerimizi ve sıcak atmosferimizi deneyimleyin
             </p>
-            <a
-              href="/iletisim"
-              className="inline-block bg-white text-primary-600 hover:bg-gray-100 font-semibold py-4 px-10 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
-            >
-              Sipariş Ver
-            </a>
           </motion.div>
         </div>
       </section>

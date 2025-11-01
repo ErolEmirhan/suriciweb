@@ -17,8 +17,26 @@ import SplashScreen from './components/SplashScreen'
 
 function AppContent() {
   const [buttonsCollapsed, setButtonsCollapsed] = useState(false)
+  const [showButtons, setShowButtons] = useState(true)
   const location = useLocation()
   const isMenuPage = location.pathname === '/menu'
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const windowHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight
+      const scrollTop = window.scrollY || document.documentElement.scrollTop
+      
+      // Footer görünür olduğunda butonları gizle (sayfanın en sonundaki %10'luk kısımda)
+      const footerThreshold = documentHeight * 0.9
+      setShowButtons(scrollTop + windowHeight < footerThreshold)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    handleScroll() // Initial check
+    
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [location]) // Re-check when route changes
 
   return (
     <>
@@ -40,7 +58,7 @@ function AppContent() {
       </div>
       
       {/* Floating Buttons Container - Only show toggle on Menu page */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end">
+      <div className={`fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end transition-opacity duration-300 ${showButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <motion.div
           animate={{
             x: (isMenuPage && buttonsCollapsed) ? 'calc(100% - 20px)' : 0,
@@ -49,8 +67,8 @@ function AppContent() {
           transition={{ duration: 0.3, ease: "easeInOut" }}
           className="flex flex-col gap-3 items-end"
         >
-          <ReservationFloatingButton />
           <LocationFloatingButton />
+          <ReservationFloatingButton />
           <InstagramFloatingButton />
         </motion.div>
         
