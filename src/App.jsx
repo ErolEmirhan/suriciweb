@@ -16,10 +16,9 @@ import LocationFloatingButton from './components/LocationFloatingButton'
 import SplashScreen from './components/SplashScreen'
 
 function AppContent() {
-  const [buttonsCollapsed, setButtonsCollapsed] = useState(false)
+  const [buttonsCollapsed, setButtonsCollapsed] = useState(true) // Başlangıçta kapalı
   const [showButtons, setShowButtons] = useState(true)
   const location = useLocation()
-  const isMenuPage = location.pathname === '/menu'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,12 +56,12 @@ function AppContent() {
         <Footer />
       </div>
       
-      {/* Floating Buttons Container - Only show toggle on Menu page */}
+      {/* Floating Buttons Container */}
       <div className={`fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end transition-opacity duration-300 ${showButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <motion.div
           animate={{
-            x: (isMenuPage && buttonsCollapsed) ? 'calc(100% - 20px)' : 0,
-            opacity: (isMenuPage && buttonsCollapsed) ? 0 : 1
+            x: buttonsCollapsed ? 'calc(100% - 20px)' : 0,
+            opacity: buttonsCollapsed ? 0 : 1
           }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           className="flex flex-col gap-3 items-end"
@@ -72,16 +71,14 @@ function AppContent() {
           <InstagramFloatingButton />
         </motion.div>
         
-        {/* Toggle Button - Only on Menu page */}
-        {isMenuPage && (
-          <motion.button
-            onClick={() => setButtonsCollapsed(!buttonsCollapsed)}
-            whileTap={{ scale: 0.95 }}
-            className={`${buttonsCollapsed ? 'bg-primary-600' : 'bg-gray-700'} text-white p-3 rounded-full shadow-2xl transition-all duration-300`}
-          >
-            {buttonsCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-          </motion.button>
-        )}
+        {/* Toggle Button */}
+        <motion.button
+          onClick={() => setButtonsCollapsed(!buttonsCollapsed)}
+          whileTap={{ scale: 0.95 }}
+          className={`${buttonsCollapsed ? 'bg-primary-600' : 'bg-gray-700'} text-white p-3 rounded-full shadow-2xl transition-all duration-300`}
+        >
+          {buttonsCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </motion.button>
       </div>
     </>
   )

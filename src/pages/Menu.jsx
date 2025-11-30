@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Leaf, UtensilsCrossed, IceCreamBowl, Coffee, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Leaf, UtensilsCrossed, IceCreamBowl, Coffee, X, ChevronLeft, ChevronRight, ChevronDown, Sparkles } from 'lucide-react'
 import makaraLogo from '../assets/makara.png'
+import makaraImage from '../assets/makara.png'
 import trdelnikImage from '../assets/trdelnik.png'
 import tatliImage from '../assets/tatli.png'
 import yemekImage from '../assets/yemek.png'
@@ -13,11 +14,48 @@ import kahvaltiImage from '../assets/kahvalti.png'
 import sicakImage from '../assets/sicak.png'
 
 export default function Menu() {
+  const [showMenuSplash, setShowMenuSplash] = useState(true)
   const [selectedMainCategory, setSelectedMainCategory] = useState(null)
   const [activeCategory, setActiveCategory] = useState(null)
   const [selectedImage, setSelectedImage] = useState({ url: null, name: null })
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [subCategoriesDrawerOpen, setSubCategoriesDrawerOpen] = useState(false)
+  const [tatliSubCategoryModalOpen, setTatliSubCategoryModalOpen] = useState(false)
+  const [yemekModalOpen, setYemekModalOpen] = useState(false)
+  const [icecekSubCategoryModalOpen, setIcecekSubCategoryModalOpen] = useState(false)
+  const [milkshakeVarietiesOpen, setMilkshakeVarietiesOpen] = useState(false)
+  const [frozenVarietiesOpen, setFrozenVarietiesOpen] = useState(false)
+  const milkshakeDropdownRef = useRef(null)
+  const frozenDropdownRef = useRef(null)
+
+  // Menu splash screen - 2 saniye
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowMenuSplash(false)
+    }, 2000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Close milkshake dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (milkshakeDropdownRef.current && !milkshakeDropdownRef.current.contains(event.target)) {
+        setMilkshakeVarietiesOpen(false)
+      }
+      if (frozenDropdownRef.current && !frozenDropdownRef.current.contains(event.target)) {
+        setFrozenVarietiesOpen(false)
+      }
+    }
+
+    if (milkshakeVarietiesOpen || frozenVarietiesOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [milkshakeVarietiesOpen, frozenVarietiesOpen])
 
   const mainCategories = [
     { id: 'tatlilar', name: 'TATLI', icon: IceCreamBowl },
@@ -27,10 +65,10 @@ export default function Menu() {
 
   const subCategories = {
     tatlilar: [
-      { id: 'trdelnik', name: 'Prag Tatlısı (Trdelnik)' },
-      { id: 'fransiz', name: 'Fransız Pastaları' },
-      { id: 'kruvasan', name: 'Kruvasan Çeşitleri' },
-      { id: 'waffle', name: 'Waffle Çeşitleri' },
+      { id: 'kruvasanlar', name: 'Kruvasanlar' },
+      { id: 'fransiz', name: 'Fransız Pastalar' },
+      { id: 'sutlu', name: 'Sütlü Tatlılar ve Pastalar' },
+      { id: 'makara', name: 'Makaralar' },
     ],
     yemekler: [
       { id: 'kahvalti', name: 'Kahvaltı' },
@@ -43,10 +81,10 @@ export default function Menu() {
   }
 
   const categoryImages = {
-    trdelnik: ['1587241321921-91a834d82ffc', '1509440159596-0249088772ff', '1562376552-0d160a2f238d', '1486427944299-d1955d23e34d', '1488477181946-6428a0291777', '1497534547324-0ebb3f052e88', '1464349095431-e9a21285b5f3', '1551024506-0bccd828d307'],
+    kruvasanlar: ['1509440159596-0249088772ff', '1562376552-0d160a2f238d', '1486427944299-d1955d23e34d', '1488477181946-6428a0291777', '1497534547324-0ebb3f052e88', '1464349095431-e9a21285b5f3', '1551024506-0bccd828d307', '1511381939415-e44015466834'],
     fransiz: ['1562376552-0d160a2f238d', '1486427944299-d1955d23e34d', '1497534547324-0ebb3f052e88', '1464349095431-e9a21285b5f3', '1511381939415-e44015466834', '1578985545062-69928b1d9587', '1587241321921-91a834d82ffc', '1551024506-0bccd828d307'],
-    kruvasan: ['1509440159596-0249088772ff', '1562376552-0d160a2f238d', '1486427944299-d1955d23e34d', '1488477181946-6428a0291777', '1497534547324-0ebb3f052e88', '1464349095431-e9a21285b5f3', '1551024506-0bccd828d307', '1511381939415-e44015466834'],
-    waffle: ['1497534547324-0ebb3f052e88', '1464349095431-e9a21285b5f3', '1551024506-0bccd828d307', '1486427944299-d1955d23e34d', '1562376552-0d160a2f238d', '1511381939415-e44015466834', '1578985545062-69928b1d9587', '1587241321921-91a834d82ffc'],
+    sutlu: ['1497534547324-0ebb3f052e88', '1464349095431-e9a21285b5f3', '1551024506-0bccd828d307', '1486427944299-d1955d23e34d', '1562376552-0d160a2f238d', '1511381939415-e44015466834', '1578985545062-69928b1d9587', '1587241321921-91a834d82ffc'],
+    makara: ['1497534547324-0ebb3f052e88', '1464349095431-e9a21285b5f3', '1551024506-0bccd828d307', '1486427944299-d1955d23e34d', '1562376552-0d160a2f238d', '1511381939415-e44015466834', '1578985545062-69928b1d9587', '1587241321921-91a834d82ffc'],
     kahvalti: ['1497534547324-0ebb3f052e88', '1464349095431-e9a21285b5f3', '1551024506-0bccd828d307', '1486427944299-d1955d23e34d', '1562376552-0d160a2f238d', '1511381939415-e44015466834', '1578985545062-69928b1d9587', '1587241321921-91a834d82ffc'],
     alacarte: ['1562376552-0d160a2f238d', '1486427944299-d1955d23e34d', '1497534547324-0ebb3f052e88', '1464349095431-e9a21285b5f3', '1511381939415-e44015466834', '1578985545062-69928b1d9587', '1587241321921-91a834d82ffc', '1551024506-0bccd828d307'],
     sicak: ['1556909172-54557c7e4fb7', '1497534547324-0ebb3f052e88', '1453614512-6d9ce88648b8', '1461020133040-9e4c0a5c6c98', '1511381939415-e44015466834', '1486427944299-d1955d23e34d', '1551024506-0bccd828d307', '1578985545062-69928b1d9587'],
@@ -108,151 +146,149 @@ export default function Menu() {
     ],
     fransiz: [
       {
-        name: 'Eclair',
-        description: 'Klasik Fransız ekleri, sütlü çikolatalı glaze',
-        price: '₺75',
+        name: 'Limon',
+        price: '₺250',
         vegetarian: true,
       },
       {
-        name: 'Macaron (6 adet)',
-        description: 'Çilek, Vanilya, Limon, Çikolata, Badem, Lavanta',
-        price: '₺125',
+        name: 'Badem',
+        price: '₺280',
         vegetarian: true,
       },
       {
-        name: 'Profiterol',
-        description: 'Krema dolu profiterol, çikolata soslu',
-        price: '₺85',
+        name: 'Mango',
+        price: '₺250',
         vegetarian: true,
       },
       {
-        name: 'Millefeuille',
-        description: 'Kat kat Fransız pastası, vanilya kreması',
-        price: '₺90',
+        name: 'Portakal',
+        price: '₺250',
         vegetarian: true,
       },
       {
-        name: 'Opera Pasta',
-        description: 'Kahveli kat kat pasta, bitter çikolata',
-        price: '₺95',
+        name: 'Çilek',
+        price: '₺270',
         vegetarian: true,
       },
       {
-        name: 'Tarte Tatin',
-        description: 'Ters elmalı tart, vanilyalı dondurma',
-        price: '₺80',
+        name: 'Yaban mersini',
+        price: '₺270',
         vegetarian: true,
       },
       {
-        name: 'Paris Brest',
-        description: 'Halka pasta, pralin kreması',
-        price: '₺85',
-        vegetarian: true,
-      },
-      {
-        name: 'Madeleine',
-        description: 'Klasik Fransız madeleine (4 adet)',
-        price: '₺65',
+        name: 'Antep fıstığı',
+        price: '₺290',
         vegetarian: true,
       },
     ],
-    kruvasan: [
+    kruvasanlar: [
       {
-        name: 'Klasik Kruvasan',
-        description: 'Geleneksel tuzlu kruvasan, tereyağlı',
-        price: '₺45',
+        name: 'Sade Kuruvasan',
+        price: '₺150',
         vegetarian: true,
       },
       {
-        name: 'Bademli Kruvasan',
-        description: 'Badem ezmesi dolu kruvasan',
-        price: '₺65',
+        name: 'Antep Fıstıklı',
+        price: '₺280',
         vegetarian: true,
       },
       {
-        name: 'Çikolatalı Kruvasan',
-        description: 'Dark çikolata dolu kruvasan',
-        price: '₺60',
+        name: 'Framboğazlı',
+        price: '₺250',
         vegetarian: true,
       },
       {
-        name: 'Fındıklı Kruvasan',
-        description: 'Fındık ezmesi ve çikolata',
-        price: '₺70',
+        name: 'Belçika Çikolatalı',
+        price: '₺250',
         vegetarian: true,
       },
       {
-        name: 'Çilekli ve Kremalı Kruvasan',
-        description: 'Vanilya kreması ve taze çilek',
-        price: '₺75',
+        name: 'Sütlü kahveli',
+        price: '₺250',
         vegetarian: true,
       },
       {
-        name: 'Muzlu Kruvasan',
-        description: 'Muz, fıstık ezmesi ve çikolata',
-        price: '₺70',
+        name: 'Lotuslu',
+        price: '₺250',
         vegetarian: true,
       },
       {
-        name: 'Peynirli Kruvasan',
-        description: 'Hafif tuzlu peynir ve otlar',
-        price: '₺55',
-        vegetarian: true,
-      },
-      {
-        name: 'Mini Kruvasan (4 adet)',
-        description: 'Karışık mini kruvasan çeşitleri',
-        price: '₺95',
+        name: 'Muzlu çilekli',
+        price: '₺250',
         vegetarian: true,
       },
     ],
-    waffle: [
+    sutlu: [
       {
-        name: 'Klasik Waffle',
-        description: 'Geleneksel waffle, maple syrup',
-        price: '₺85',
+        name: 'Çilekli Magnolya',
+        price: '₺220',
         vegetarian: true,
       },
       {
-        name: 'Çikolatalı Waffle',
-        description: 'Nutella, bitter çikolata, çilek',
-        price: '₺115',
+        name: 'Dev profiterol',
+        price: '₺280',
         vegetarian: true,
       },
       {
-        name: 'Krema ve Meyveli Waffle',
-        description: 'Vanilya kreması, mevsim meyveleri',
-        price: '₺125',
+        name: 'Tiramisu',
+        price: '₺280',
         vegetarian: true,
       },
       {
-        name: 'Fındıklı Waffle',
-        description: 'Fındık ezmesi, fındık parçaları, bal',
-        price: '₺110',
+        name: 'Limonlu Chesecake',
+        price: '₺250',
         vegetarian: true,
       },
       {
-        name: 'Antep Fıstıklı Waffle',
-        description: 'Antep fıstığı, beyaz çikolata, dondurma',
-        price: '₺135',
+        name: 'San sebastian',
+        price: '₺280',
         vegetarian: true,
       },
       {
-        name: 'Belçika Waffle',
-        description: 'Liege waffle, pearl sugar, karamel',
-        price: '₺95',
+        name: 'Antep Fıstıklı keşkül',
+        price: '₺280',
         vegetarian: true,
       },
       {
-        name: 'Dondurmalı Waffle',
-        description: '3 top dondurma, çikolata sosu',
-        price: '₺130',
+        name: 'İncirli muhallebi',
+        price: '₺280',
         vegetarian: true,
       },
       {
-        name: 'Karışık Waffle',
-        description: 'Çeşitli meyveler, kremalar, soslar',
-        price: '₺145',
+        name: 'Red velvet',
+        price: '₺240',
+        vegetarian: true,
+      },
+      {
+        name: 'Lotuslu Paris Brest',
+        price: '₺250',
+        vegetarian: true,
+      },
+      {
+        name: 'Antep fıstıklı Çıtırtı',
+        price: '₺290',
+        vegetarian: true,
+      },
+    ],
+    makara: [
+      {
+        name: 'Antep Fıstıklı',
+        price: '₺290',
+        vegetarian: true,
+      },
+      {
+        name: 'Lotuslu',
+        price: '₺280',
+        vegetarian: true,
+      },
+      {
+        name: 'Oreolu',
+        price: '₺280',
+        vegetarian: true,
+      },
+      {
+        name: 'Çilekli',
+        price: '₺280',
         vegetarian: true,
       },
     ],
@@ -346,65 +382,153 @@ export default function Menu() {
     ],
     sicak: [
       {
-        name: 'Türk Kahvesi',
-        description: 'Geleneksel Türk kahvesi',
-        price: '₺45',
+        name: 'ESPRESSO',
+        price: '₺80',
         vegetarian: true,
       },
       {
-        name: 'Espresso / Cappuccino',
-        description: 'İtalyan kahve',
-        price: '₺55',
+        name: 'DOUBLE ESPRESSO',
+        price: '₺120',
         vegetarian: true,
       },
       {
-        name: 'Latte / Mocha',
-        description: 'Özel kahve',
-        price: '₺65',
+        name: 'AMERİCANO',
+        price: '₺125',
         vegetarian: true,
       },
       {
-        name: 'Filtre Kahve',
-        description: 'Özel çekirdek filtre kahve',
-        price: '₺50',
+        name: 'TÜRK KAHVESİ',
+        price: '₺125',
         vegetarian: true,
       },
       {
-        name: 'Çay Çeşitleri',
-        description: 'Türk çayı, yeşil çay, bitki çayları',
-        price: '₺35',
+        name: 'DOUBLE TURK KAHVESİ',
+        price: '₺160',
+        vegetarian: true,
+      },
+      {
+        name: 'MENENGİÇ KAHVESİ',
+        price: '₺125',
+        vegetarian: true,
+      },
+      {
+        name: 'DOUBLE MENENGİÇ KAHVESİ',
+        price: '₺160',
+        vegetarian: true,
+      },
+      {
+        name: 'FİLTRE KAHVE',
+        price: '₺125',
+        vegetarian: true,
+      },
+      {
+        name: 'LATTE',
+        price: '₺150',
+        vegetarian: true,
+      },
+      {
+        name: 'CAPPUCİNO',
+        price: '₺150',
+        vegetarian: true,
+      },
+      {
+        name: 'FLAT WHİTE',
+        price: '₺150',
+        vegetarian: true,
+      },
+      {
+        name: 'CORTADO',
+        price: '₺150',
+        vegetarian: true,
+      },
+      {
+        name: 'MOCHA',
+        price: '₺170',
+        vegetarian: true,
+      },
+      {
+        name: 'WHİTE MOCHA',
+        price: '₺170',
+        vegetarian: true,
+      },
+      {
+        name: 'CARAMEL MOCHA',
+        price: '₺170',
+        vegetarian: true,
+      },
+      {
+        name: 'AROMALI LATTELER',
+        description: 'Karamel, Fındık, Hindistan Cevizi, Badem, Vanilya, Bal Kabağı, Pikan Cevizi, Toffenut, Cookie',
+        price: '₺170',
+        vegetarian: true,
+      },
+      {
+        name: 'SALEP',
+        price: '₺160',
+        vegetarian: true,
+      },
+      {
+        name: 'CHAİ TEA LATTE',
+        price: '₺170',
+        vegetarian: true,
+      },
+      {
+        name: 'SICAK ÇİKOLATA (CALLEBAUT)',
+        price: '₺190',
+        vegetarian: true,
+      },
+      {
+        name: 'BİTKİ ÇAYLARI',
+        description: 'Papatya, Melisa, Nane Limon, Adaçayı, Kış Çayı, Yeşil Çay, Ihlamur',
+        price: '₺180',
         vegetarian: true,
       },
     ],
     soguk: [
       {
-        name: 'Milkshake',
-        description: 'Çikolata, Vanilya, Çilek, Karamel',
-        price: '₺85',
+        name: 'MİLKSHAKE',
+        price: '₺160',
         vegetarian: true,
       },
       {
-        name: 'Smoothie',
-        description: 'Mevsim meyvelerinden smoothie',
-        price: '₺75',
+        name: 'SMOOTHİE',
+        price: '₺180',
         vegetarian: true,
       },
       {
-        name: 'Taze Sıkılmış Meyve Suyu',
-        description: 'Portakal, Nar, Havuç, Karışık',
-        price: '₺65',
+        name: 'FROZEN',
+        price: '₺160',
         vegetarian: true,
       },
       {
-        name: 'Ice Latte / Ice Americano',
-        description: 'Buzlu kahve seçenekleri',
-        price: '₺60',
+        name: 'FRAPPE',
+        price: '₺180',
         vegetarian: true,
       },
       {
-        name: 'Frappé',
-        description: 'Vanilyalı, çikolatalı, karamelli frappé',
-        price: '₺80',
+        name: 'EV YAPIMI LİMONATA',
+        price: '₺150',
+        vegetarian: true,
+      },
+      {
+        name: 'ÇİLEKLİ LİMONATA',
+        price: '₺170',
+        vegetarian: true,
+      },
+      {
+        name: '3. NESİL KAHVELER',
+        description: 'Syphon, Chemex, V60, Cold Brew',
+        price: '₺250',
+        vegetarian: true,
+      },
+      {
+        name: 'COOL LİME',
+        price: '₺170',
+        vegetarian: true,
+      },
+      {
+        name: 'BERRY HİBİSCUS',
+        price: '₺170',
         vegetarian: true,
       },
     ],
@@ -412,17 +536,35 @@ export default function Menu() {
 
   // Handle category selection
   const handleCategorySelect = (categoryId) => {
-    setSelectedMainCategory(categoryId)
     setDrawerOpen(false)
     
-    // Set default active subcategory
+    // If tatlı is selected, open the subcategory modal instead
     if (categoryId === 'tatlilar') {
-      setActiveCategory('trdelnik')
+      setTatliSubCategoryModalOpen(true)
     } else if (categoryId === 'yemekler') {
-      setActiveCategory('kahvalti')
+      // Yemek kategorisi için modal aç ve kategoriyi seç
+      setSelectedMainCategory('yemekler')
+      setYemekModalOpen(true)
     } else if (categoryId === 'icecekler') {
-      setActiveCategory('sicak')
+      // İçecek kategorisi için modal aç
+      setIcecekSubCategoryModalOpen(true)
+    } else {
+      setSelectedMainCategory(categoryId)
     }
+  }
+
+  // Handle içecek subcategory selection
+  const handleIcecekSubCategorySelect = (subCategoryId) => {
+    setSelectedMainCategory('icecekler')
+    setActiveCategory(subCategoryId)
+    setIcecekSubCategoryModalOpen(false)
+  }
+
+  // Handle tatlı subcategory selection
+  const handleTatliSubCategorySelect = (subCategoryId) => {
+    setSelectedMainCategory('tatlilar')
+    setActiveCategory(subCategoryId)
+    setTatliSubCategoryModalOpen(false)
   }
 
   // Get color classes for categories
@@ -461,75 +603,211 @@ export default function Menu() {
   const colors = selectedMainCategory ? getCategoryColors(selectedMainCategory) : null
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: 100 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -100 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="overflow-hidden relative">
-      {/* Menu Section */}
-      <section className={`${!selectedMainCategory ? 'py-8 md:py-12' : 'py-24'} bg-gray-50 min-h-screen`}>
-        <div className="container-custom">
-          {!selectedMainCategory ? (
-            /* Initial View - 3 Category Boxes */
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)] py-2"
-            >
-              <h2 className="text-2xl md:text-3xl font-display font-bold mb-6 md:mb-8 text-gray-900 text-center">
-                Menüyü Keşfedin
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 w-full max-w-5xl h-full">
-                {mainCategories.map((category) => {
-                  const Icon = category.icon
-                  const categoryColors = getCategoryColors(category.id)
-                  
-                  // Her kategori için uygun görseller
-                  const categoryImageMap = {
-                    tatlilar: tatliImage,
-                    yemekler: yemekImage,
-                    icecekler: icecekImage
-                  }
-                  
-                  // Gradient overlay renkleri
-                  const gradientOverlay = category.id === 'tatlilar'
-                    ? 'from-primary-600/80 via-primary-500/40 to-transparent'
-                    : category.id === 'yemekler'
-                    ? 'from-orange-600/80 via-orange-500/40 to-transparent'
-                    : 'from-emerald-600/80 via-emerald-500/40 to-transparent'
-                  
-                  return (
-                    <motion.button
-                      key={category.id}
-                      onClick={() => handleCategorySelect(category.id)}
-                      whileHover={{ scale: 1.05, y: -8 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="relative rounded-3xl overflow-hidden shadow-2xl border-2 border-transparent transition-all duration-300 hover:shadow-3xl h-full min-h-[200px] md:min-h-[280px]"
-                    >
-                      {/* Background Image */}
-                      <div className="absolute inset-0">
-                        <img
-                          src={categoryImageMap[category.id]}
-                          alt={category.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      
-                      {/* Gradient Overlay - Left to Right */}
-                      <div className={`absolute inset-0 bg-gradient-to-r ${gradientOverlay}`} />
-                      
-                      {/* Content */}
-                      <div className="relative z-10 h-full flex flex-col items-center justify-center gap-2 md:gap-4 p-4 md:p-6">
-                        <Icon className="w-9 h-9 md:w-12 md:h-12 text-white drop-shadow-lg" />
-                        <span className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg px-6 py-3 md:px-8 md:py-4 rounded-full bg-black/50 backdrop-blur-sm">
-                          {category.name}
-                        </span>
-                      </div>
-                    </motion.button>
-                  )
-                })}
+    <>
+      {/* Menu Splash Screen */}
+      <AnimatePresence>
+        {showMenuSplash && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-[200] bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700 flex items-center justify-center overflow-hidden"
+          >
+            {/* Animated Background Elements */}
+            <div className="absolute inset-0 overflow-hidden">
+              {[...Array(20)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute rounded-full bg-white/10"
+                  initial={{
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    width: Math.random() * 100 + 50,
+                    height: Math.random() * 100 + 50,
+                  }}
+                  animate={{
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{
+                    duration: Math.random() * 3 + 2,
+                    repeat: Infinity,
+                    delay: Math.random() * 2,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Main Content */}
+            <div className="relative z-10 text-center">
+              {/* Sparkle Icons */}
+              <div className="absolute -top-20 -left-20">
+                <motion.div
+                  animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Sparkles className="w-16 h-16 text-white/30" />
+                </motion.div>
               </div>
+              <div className="absolute -top-20 -right-20">
+                <motion.div
+                  animate={{ rotate: -360, scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <Sparkles className="w-16 h-16 text-white/30" />
+                </motion.div>
+              </div>
+              <div className="absolute -bottom-20 -left-20">
+                <motion.div
+                  animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                >
+                  <Sparkles className="w-16 h-16 text-white/30" />
+                </motion.div>
+              </div>
+              <div className="absolute -bottom-20 -right-20">
+                <motion.div
+                  animate={{ rotate: -360, scale: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                >
+                  <Sparkles className="w-16 h-16 text-white/30" />
+                </motion.div>
+              </div>
+
+              {/* Main Text */}
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                className="mb-8"
+              >
+                <h1 className="text-7xl md:text-9xl font-display font-bold text-white mb-4 drop-shadow-2xl">
+                  Menü
+                </h1>
+              </motion.div>
+
+              {/* Subtitle */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+              >
+                <p className="text-3xl md:text-5xl font-semibold text-white/90 drop-shadow-lg tracking-wide">
+                  Afiyet Olsun
+                </p>
+              </motion.div>
+
+              {/* Decorative Line */}
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '200px' }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="mx-auto mt-8 h-1 bg-white/50 rounded-full"
+              />
+
+              {/* Floating Particles */}
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-2 h-2 bg-white/40 rounded-full"
+                  initial={{
+                    x: '50%',
+                    y: '50%',
+                    scale: 0,
+                  }}
+                  animate={{
+                    x: `${50 + (Math.random() - 0.5) * 100}%`,
+                    y: `${50 + (Math.random() - 0.5) * 100}%`,
+                    scale: [0, 1, 0],
+                  }}
+                  transition={{
+                    duration: Math.random() * 2 + 1,
+                    repeat: Infinity,
+                    delay: Math.random() * 1,
+                  }}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div 
+        initial={{ opacity: 0, x: 100 }}
+        animate={{ opacity: showMenuSplash ? 0 : 1, x: 0 }}
+        exit={{ opacity: 0, x: -100 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="overflow-hidden relative">
+       {/* Menu Section */}
+       <section className={`${!selectedMainCategory ? '' : 'py-24'} bg-gray-50 min-h-screen`}>
+         <div className="container-custom">
+           {!selectedMainCategory ? (
+             /* Initial View - 3 Category Boxes - Hero Section */
+             <motion.div
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               className="flex flex-col items-center justify-start min-h-screen h-screen py-2 pt-16 md:pt-24"
+             >
+               <h2 className="text-lg md:text-xl font-display font-bold mb-4 md:mb-6 text-gray-900 text-center">
+                 Menüyü Keşfedin
+               </h2>
+               <div className="flex flex-col gap-3 md:gap-4 w-full max-w-2xl flex-1">
+                 {mainCategories.map((category, index) => {
+                   const Icon = category.icon
+                   const categoryColors = getCategoryColors(category.id)
+                   
+                   // Her kategori için uygun görseller
+                   const categoryImageMap = {
+                     tatlilar: tatliImage,
+                     yemekler: yemekImage,
+                     icecekler: icecekImage
+                   }
+                   
+                   // Gradient overlay renkleri
+                   const gradientOverlay = category.id === 'tatlilar'
+                     ? 'from-primary-600/80 via-primary-500/40 to-transparent'
+                     : category.id === 'yemekler'
+                     ? 'from-orange-600/80 via-orange-500/40 to-transparent'
+                     : 'from-emerald-600/80 via-emerald-500/40 to-transparent'
+                   
+                   return (
+                     <motion.button
+                       key={category.id}
+                       onClick={() => handleCategorySelect(category.id)}
+                       whileHover={{ scale: 1.02, x: 4 }}
+                       whileTap={{ scale: 0.98 }}
+                       initial={{ opacity: 0, x: -20 }}
+                       animate={{ opacity: 1, x: 0 }}
+                       transition={{ delay: index * 0.1 }}
+                       className="relative rounded-2xl overflow-hidden shadow-xl border-2 border-transparent transition-all duration-300 hover:shadow-2xl h-[180px] md:h-[220px] w-full"
+                     >
+                       {/* Background Image */}
+                       <div className="absolute inset-0">
+                         <img
+                           src={categoryImageMap[category.id]}
+                           alt={category.name}
+                           className="w-full h-full object-cover"
+                         />
+                       </div>
+                       
+                       {/* Gradient Overlay - Left to Right */}
+                       <div className={`absolute inset-0 bg-gradient-to-r ${gradientOverlay}`} />
+                       
+                       {/* Content */}
+                       <div className="relative z-10 h-full flex flex-col items-center justify-center gap-3 md:gap-4 px-6 md:px-8">
+                         <div className="p-3 md:p-3.5 rounded-xl bg-white/20 backdrop-blur-sm">
+                           <Icon className="w-8 h-8 md:w-10 md:h-10 text-white drop-shadow-lg" />
+                         </div>
+                         <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg text-center px-4 py-2 md:px-6 md:py-3 rounded-xl bg-black/50 backdrop-blur-sm">
+                           {category.name}
+                         </span>
+                       </div>
+                     </motion.button>
+                   )
+                 })}
+               </div>
             </motion.div>
           ) : (
             /* Category Selected View */
@@ -538,27 +816,46 @@ export default function Menu() {
               <motion.button
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                onClick={() => setDrawerOpen(true)}
+                onClick={() => {
+                  if (selectedMainCategory === 'tatlilar') {
+                    setTatliSubCategoryModalOpen(true)
+                  } else if (selectedMainCategory === 'yemekler') {
+                    setYemekModalOpen(true)
+                  } else if (selectedMainCategory === 'icecekler') {
+                    setIcecekSubCategoryModalOpen(true)
+                  } else {
+                    setSubCategoriesDrawerOpen(true)
+                  }
+                }}
                 className={`fixed top-24 left-0 z-40 flex items-center gap-2 pl-4 pr-6 py-3 rounded-r-full shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 text-white ${colors?.active || 'bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700'}`}
               >
-                <span className="font-semibold">{selectedCategory?.name}</span>
+                <span className="font-semibold">
+                  {selectedMainCategory === 'tatlilar' && activeCategory
+                    ? subCategories.tatlilar.find((cat) => cat.id === activeCategory)?.name || selectedCategory?.name
+                    : selectedMainCategory === 'icecekler' && activeCategory
+                    ? subCategories.icecekler.find((cat) => cat.id === activeCategory)?.name || selectedCategory?.name
+                    : selectedCategory?.name || 'YEMEK'}
+                </span>
                 <ChevronRight size={20} />
               </motion.button>
 
-              {/* Sub Categories Button - Top Right */}
+              {/* Ana Kategori Seçim Butonu - Top Right (Simetrik) */}
               <motion.button
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                onClick={() => setSubCategoriesDrawerOpen(true)}
+                onClick={() => {
+                  setSelectedMainCategory(null)
+                  setActiveCategory(null)
+                  setTatliSubCategoryModalOpen(false)
+                  setYemekModalOpen(false)
+                  setIcecekSubCategoryModalOpen(false)
+                }}
                 className={`fixed top-24 right-0 z-40 flex items-center gap-2 pl-6 pr-4 py-3 rounded-l-full shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 text-white ${colors?.active || 'bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700'}`}
               >
                 <ChevronLeft size={20} />
-                <span className="font-semibold">
-                  {activeCategory && subCategories[selectedMainCategory]
-                    ? subCategories[selectedMainCategory].find((cat) => cat.id === activeCategory)?.name || 'Alt Kategoriler'
-                    : 'Alt Kategoriler'}
-                </span>
+                <span className="font-semibold">Kategoriler</span>
               </motion.button>
+
 
               {/* Menu Content */}
               <motion.div
@@ -586,14 +883,14 @@ export default function Menu() {
                 ) : selectedMainCategory === 'tatlilar' || selectedMainCategory === 'icecekler' ? (
                   <>
                     {activeCategory && menuItems[activeCategory] && (
-                      <div className="space-y-4">
+                      <div className="space-y-4 overflow-visible">
                         {menuItems[activeCategory].map((item, index) => (
                           <motion.div
                             key={item.name}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.02 }}
-                            className="relative flex items-center gap-6 p-6 rounded-3xl bg-white border-2 border-gray-200 shadow-xl transition-all duration-500 group overflow-hidden"
+                            className="relative flex items-center gap-6 p-6 rounded-3xl bg-white border-2 border-gray-200 shadow-xl transition-all duration-500 group overflow-visible"
                           >
                             {/* Makara Logo - Bottom Right */}
                             <img
@@ -604,19 +901,129 @@ export default function Menu() {
                             {/* Product Image - 1x1 Square */}
                             <div 
                               className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0 cursor-pointer"
-                              onClick={() => setSelectedImage({
-                                url: item.image || `https://images.unsplash.com/photo-${categoryImages[activeCategory][index % categoryImages[activeCategory].length]}?w=800&h=800&fit=crop&q=90`,
-                                name: item.name
-                              })}
+                              onClick={() => {
+                                const imageArray = categoryImages[activeCategory] || []
+                                const imageId = imageArray[index % imageArray.length] || '1556909172-54557c7e4fb7'
+                                setSelectedImage({
+                                  url: item.image || `https://images.unsplash.com/photo-${imageId}?w=800&h=800&fit=crop&q=90`,
+                                  name: item.name
+                                })
+                              }}
                             >
                               <div className="w-full h-full rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                                <img
-                                  src={item.image || `https://images.unsplash.com/photo-${categoryImages[activeCategory][index % categoryImages[activeCategory].length]}?w=400&h=400&fit=crop&q=80`}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                                />
+                                {(() => {
+                                  const imageArray = categoryImages[activeCategory] || []
+                                  const imageId = imageArray[index % imageArray.length] || '1556909172-54557c7e4fb7'
+                                  return (
+                                    <img
+                                      src={item.image || `https://images.unsplash.com/photo-${imageId}?w=400&h=400&fit=crop&q=80`}
+                                      alt={item.name}
+                                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                    />
+                                  )
+                                })()}
                               </div>
                             </div>
+
+                            {/* Milkshake Çeşitler Butonu - Sağ Üst */}
+                            {item.name === 'MİLKSHAKE' && activeCategory === 'soguk' && (
+                              <div className="absolute top-4 right-4 z-10" ref={milkshakeDropdownRef}>
+                                <motion.button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setMilkshakeVarietiesOpen(!milkshakeVarietiesOpen)
+                                  }}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs md:text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                                >
+                                  <span>Çeşitler</span>
+                                  <motion.div
+                                    animate={{ rotate: milkshakeVarietiesOpen ? 180 : 0 }}
+                                    transition={{ duration: 0.3 }}
+                                  >
+                                    <ChevronDown size={14} />
+                                  </motion.div>
+                                </motion.button>
+                                
+                                {/* Çeşitler Dropdown */}
+                                <AnimatePresence>
+                                  {milkshakeVarietiesOpen && (
+                                    <motion.div
+                                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="absolute top-full right-0 mt-2 min-w-fit w-auto bg-white rounded-xl shadow-2xl border-2 border-emerald-200 overflow-hidden z-[100] whitespace-nowrap"
+                                      style={{ position: 'absolute' }}
+                                    >
+                                      {['Çilek', 'Muz', 'Çikolata', 'Karamel', 'Vanilya', 'Oreo'].map((variety, idx) => (
+                                        <motion.div
+                                          key={variety}
+                                          initial={{ opacity: 0, x: -10 }}
+                                          animate={{ opacity: 1, x: 0 }}
+                                          transition={{ delay: idx * 0.03 }}
+                                          whileHover={{ backgroundColor: '#ecfdf5' }}
+                                          className="px-4 py-3 transition-colors cursor-pointer border-b border-gray-100 last:border-b-0"
+                                        >
+                                          <span className="text-sm font-medium text-gray-800">{variety}</span>
+                                        </motion.div>
+                                      ))}
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            )}
+
+                            {/* Frozen Çeşitler Butonu - Sağ Üst */}
+                            {item.name === 'FROZEN' && activeCategory === 'soguk' && (
+                              <div className="absolute top-4 right-4 z-10" ref={frozenDropdownRef}>
+                                <motion.button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setFrozenVarietiesOpen(!frozenVarietiesOpen)
+                                  }}
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs md:text-sm font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                                >
+                                  <span>Çeşitler</span>
+                                  <motion.div
+                                    animate={{ rotate: frozenVarietiesOpen ? 180 : 0 }}
+                                    transition={{ duration: 0.3 }}
+                                  >
+                                    <ChevronDown size={14} />
+                                  </motion.div>
+                                </motion.button>
+                                
+                                {/* Çeşitler Dropdown */}
+                                <AnimatePresence>
+                                  {frozenVarietiesOpen && (
+                                    <motion.div
+                                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="absolute top-full right-0 mt-2 min-w-fit w-auto bg-white rounded-xl shadow-2xl border-2 border-emerald-200 overflow-hidden z-[100] whitespace-nowrap"
+                                      style={{ position: 'absolute' }}
+                                    >
+                                      {['Orman meyveli', 'Böğürtlen', 'Karadut', 'Frambuaz', 'Çilek', 'Mango', 'Ananas', 'Şeftali'].map((variety, idx) => (
+                                        <motion.div
+                                          key={variety}
+                                          initial={{ opacity: 0, x: -10 }}
+                                          animate={{ opacity: 1, x: 0 }}
+                                          transition={{ delay: idx * 0.03 }}
+                                          whileHover={{ backgroundColor: '#ecfdf5' }}
+                                          className="px-4 py-3 transition-colors cursor-pointer border-b border-gray-100 last:border-b-0"
+                                        >
+                                          <span className="text-sm font-medium text-gray-800">{variety}</span>
+                                        </motion.div>
+                                      ))}
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            )}
 
                             {/* Product Info - Name on top, Price below */}
                             <div className="flex-1 min-w-0">
@@ -822,10 +1229,10 @@ export default function Menu() {
                       
                       // Alt kategori görselleri
                       const subCategoryImageMap = {
-                        trdelnik: trdelnikImage,
+                        kruvasanlar: kruvasanImage,
                         fransiz: fransizImage,
-                        kruvasan: kruvasanImage,
-                        waffle: waffleImage,
+                        sutlu: tatliImage,
+                        makara: makaraImage,
                         kahvalti: kahvaltiImage,
                         sicak: sicakImage,
                         // Yemek ve içecek kategorileri için ana kategori görseli kullan
@@ -924,6 +1331,252 @@ export default function Menu() {
         </section>
       )}
 
+      {/* Yemek Modal - Çok Yakında */}
+      <AnimatePresence>
+        {yemekModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setYemekModalOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            />
+            
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed inset-0 z-[101] flex items-center justify-center p-4"
+              onClick={() => setYemekModalOpen(false)}
+            >
+              <motion.div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl shadow-2xl border-2 border-gray-200 p-8 md:p-12 max-w-2xl w-full"
+              >
+                {/* Content */}
+                <div className="text-center">
+                  <div className="mb-6">
+                    <UtensilsCrossed className="w-20 h-20 mx-auto text-orange-500 mb-4" />
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 mb-4">
+                    Çok yakında sizlerle...
+                  </h2>
+                  <p className="text-lg text-gray-600 mb-8">
+                    Yemek menümüz yakında eklenecek
+                  </p>
+                  
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setYemekModalOpen(false)}
+                    className="px-6 py-3 rounded-full bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 text-white font-semibold transition-all duration-300 hover:scale-105 shadow-lg"
+                  >
+                    Tamam
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* İçecek Subcategory Selection Modal */}
+      <AnimatePresence>
+        {icecekSubCategoryModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIcecekSubCategoryModalOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            />
+            
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed inset-0 z-[101] flex items-center justify-center p-4"
+              onClick={() => setIcecekSubCategoryModalOpen(false)}
+            >
+              <motion.div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl shadow-2xl border-2 border-gray-200 p-4 md:p-6 max-w-4xl w-full h-[90vh] max-h-[90vh] flex flex-col"
+              >
+                {/* Header */}
+                <div className="text-center mb-4 md:mb-6 flex-shrink-0">
+                  <h2 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-1">
+                    İçecek Seçenekleri
+                  </h2>
+                  <p className="text-sm md:text-base text-gray-600">Lütfen bir kategori seçin</p>
+                </div>
+
+                {/* 2 Seçenek Grid - Flex grow ile kalan alanı kaplar */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 flex-1 min-h-0">
+                  {subCategories.icecekler.map((subCategory, index) => {
+                    const subCategoryImageMap = {
+                      sicak: sicakImage,
+                      soguk: icecekImage,
+                    }
+                    
+                    const image = subCategoryImageMap[subCategory.id] || icecekImage
+                    
+                    return (
+                      <motion.button
+                        key={subCategory.id}
+                        onClick={() => handleIcecekSubCategorySelect(subCategory.id)}
+                        whileHover={{ scale: 1.02, y: -4 }}
+                        whileTap={{ scale: 0.98 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-xl border-2 border-gray-200 hover:border-emerald-400 transition-all duration-300 group h-full"
+                      >
+                        {/* Background Image */}
+                        <div className="absolute inset-0">
+                          <img
+                            src={image}
+                            alt={subCategory.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                        
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/80 via-emerald-500/60 to-emerald-400/40 group-hover:from-emerald-600/90 group-hover:via-emerald-500/70 group-hover:to-emerald-400/50 transition-all duration-300" />
+                        
+                        {/* Content */}
+                        <div className="relative z-10 h-full flex items-center justify-center p-3 md:p-4">
+                          <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg text-center leading-tight">
+                            {subCategory.name}
+                          </h3>
+                        </div>
+                        
+                        {/* Hover Effect Border */}
+                        <div className="absolute inset-0 rounded-xl md:rounded-2xl border-4 border-white/0 group-hover:border-white/30 transition-all duration-300" />
+                      </motion.button>
+                    )
+                  })}
+                </div>
+
+                {/* Close Button */}
+                <div className="mt-4 md:mt-6 flex justify-center flex-shrink-0">
+                  <button
+                    onClick={() => setIcecekSubCategoryModalOpen(false)}
+                    className="px-5 py-2 md:px-6 md:py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm md:text-base font-semibold transition-colors"
+                  >
+                    İptal
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Tatlı Subcategory Selection Modal */}
+      <AnimatePresence>
+        {tatliSubCategoryModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setTatliSubCategoryModalOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            />
+            
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed inset-0 z-[101] flex items-center justify-center p-4"
+              onClick={() => setTatliSubCategoryModalOpen(false)}
+            >
+              <motion.div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl shadow-2xl border-2 border-gray-200 p-4 md:p-6 max-w-4xl w-full h-[90vh] max-h-[90vh] flex flex-col"
+              >
+                {/* Header */}
+                <div className="text-center mb-4 md:mb-6 flex-shrink-0">
+                  <h2 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-1">
+                    Tatlı Seçenekleri
+                  </h2>
+                  <p className="text-sm md:text-base text-gray-600">Lütfen bir kategori seçin</p>
+                </div>
+
+                {/* 4 Seçenek Grid - Flex grow ile kalan alanı kaplar */}
+                <div className="grid grid-cols-2 gap-3 md:gap-4 flex-1 min-h-0">
+                  {subCategories.tatlilar.map((subCategory, index) => {
+                    const subCategoryImageMap = {
+                      kruvasanlar: kruvasanImage,
+                      fransiz: fransizImage,
+                      sutlu: tatliImage,
+                      makara: makaraImage,
+                    }
+                    
+                    const image = subCategoryImageMap[subCategory.id] || tatliImage
+                    
+                    return (
+                      <motion.button
+                        key={subCategory.id}
+                        onClick={() => handleTatliSubCategorySelect(subCategory.id)}
+                        whileHover={{ scale: 1.02, y: -4 }}
+                        whileTap={{ scale: 0.98 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-xl border-2 border-gray-200 hover:border-primary-400 transition-all duration-300 group h-full"
+                      >
+                        {/* Background Image */}
+                        <div className="absolute inset-0">
+                          <img
+                            src={image}
+                            alt={subCategory.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                        
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary-600/80 via-primary-500/60 to-primary-400/40 group-hover:from-primary-600/90 group-hover:via-primary-500/70 group-hover:to-primary-400/50 transition-all duration-300" />
+                        
+                        {/* Content */}
+                        <div className="relative z-10 h-full flex items-center justify-center p-3 md:p-4">
+                          <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white drop-shadow-lg text-center leading-tight">
+                            {subCategory.name}
+                          </h3>
+                        </div>
+                        
+                        {/* Hover Effect Border */}
+                        <div className="absolute inset-0 rounded-xl md:rounded-2xl border-4 border-white/0 group-hover:border-white/30 transition-all duration-300" />
+                      </motion.button>
+                    )
+                  })}
+                </div>
+
+                {/* Close Button */}
+                <div className="mt-4 md:mt-6 flex justify-center flex-shrink-0">
+                  <button
+                    onClick={() => setTatliSubCategoryModalOpen(false)}
+                    className="px-5 py-2 md:px-6 md:py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm md:text-base font-semibold transition-colors"
+                  >
+                    İptal
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Image Lightbox Modal */}
       {selectedImage.url && (
         <motion.div
@@ -967,6 +1620,7 @@ export default function Menu() {
           </motion.div>
         </motion.div>
       )}
-    </motion.div>
+      </motion.div>
+    </>
   )
 }
