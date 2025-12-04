@@ -8,7 +8,7 @@ export default function Contact() {
       icon: MapPin,
       title: 'Adres',
       content: 'Havzan Mah. Ebusuhud Efendi Caddesi, NO : 15 / 1A',
-      link: 'https://maps.google.com',
+      link: 'https://www.google.com/maps?q=37.862200,32.471324',
     },
     {
       icon: Phone,
@@ -92,7 +92,7 @@ export default function Contact() {
                 style={{ height: '450px' }}
               >
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3016.123456789!2d32.4718056!3d37.8616667!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDUxJzQyLjAiTiAzMsKwMjgnMTguNSJF!5e0!3m2!1str!2str!4v1234567890"
+                  src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3161.5542280890826!2d32.46913467599958!3d37.86220000166524!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMzfCsDUxJzQzLjkiTiAzMsKwMjgnMTYuOCJF!5e0!3m2!1str!2str!4v1234567890"
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}

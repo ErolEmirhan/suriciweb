@@ -20,9 +20,7 @@ export default function Menu() {
   const [selectedImage, setSelectedImage] = useState({ url: null, name: null })
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [subCategoriesDrawerOpen, setSubCategoriesDrawerOpen] = useState(false)
-  const [tatliSubCategoryModalOpen, setTatliSubCategoryModalOpen] = useState(false)
   const [yemekModalOpen, setYemekModalOpen] = useState(false)
-  const [icecekSubCategoryModalOpen, setIcecekSubCategoryModalOpen] = useState(false)
   const [milkshakeVarietiesOpen, setMilkshakeVarietiesOpen] = useState(false)
   const [frozenVarietiesOpen, setFrozenVarietiesOpen] = useState(false)
   const milkshakeDropdownRef = useRef(null)
@@ -56,6 +54,30 @@ export default function Menu() {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [milkshakeVarietiesOpen, frozenVarietiesOpen])
+
+  // Browser geri butonu kontrolü
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (activeCategory) {
+        // Alt kategorideyse, sadece alt kategoriyi temizle
+        setActiveCategory(null)
+      } else if (selectedMainCategory) {
+        // Ana kategorideyse, kategori seçimini temizle
+        setSelectedMainCategory(null)
+      }
+      // Eğer hiçbiri yoksa, normal şekilde geri git (ana sayfaya)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [activeCategory, selectedMainCategory])
+
+  // State değişikliklerinde history'ye ekle
+  useEffect(() => {
+    if (activeCategory || selectedMainCategory) {
+      window.history.pushState({ menuState: true }, '', window.location.pathname)
+    }
+  }, [activeCategory, selectedMainCategory])
 
   const mainCategories = [
     { id: 'tatlilar', name: 'TATLI', icon: IceCreamBowl },
@@ -538,33 +560,23 @@ export default function Menu() {
   const handleCategorySelect = (categoryId) => {
     setDrawerOpen(false)
     
-    // If tatlı is selected, open the subcategory modal instead
-    if (categoryId === 'tatlilar') {
-      setTatliSubCategoryModalOpen(true)
-    } else if (categoryId === 'yemekler') {
-      // Yemek kategorisi için modal aç ve kategoriyi seç
-      setSelectedMainCategory('yemekler')
+    // Tüm kategoriler için ana kategoriyi seç
+    setSelectedMainCategory(categoryId)
+    
+    // Yemek kategorisi için modal aç
+    if (categoryId === 'yemekler') {
       setYemekModalOpen(true)
-    } else if (categoryId === 'icecekler') {
-      // İçecek kategorisi için modal aç
-      setIcecekSubCategoryModalOpen(true)
-    } else {
-      setSelectedMainCategory(categoryId)
     }
   }
 
   // Handle içecek subcategory selection
   const handleIcecekSubCategorySelect = (subCategoryId) => {
-    setSelectedMainCategory('icecekler')
     setActiveCategory(subCategoryId)
-    setIcecekSubCategoryModalOpen(false)
   }
 
   // Handle tatlı subcategory selection
   const handleTatliSubCategorySelect = (subCategoryId) => {
-    setSelectedMainCategory('tatlilar')
     setActiveCategory(subCategoryId)
-    setTatliSubCategoryModalOpen(false)
   }
 
   // Get color classes for categories
@@ -773,38 +785,38 @@ export default function Menu() {
                      : 'from-emerald-600/80 via-emerald-500/40 to-transparent'
                    
                    return (
-                     <motion.button
-                       key={category.id}
-                       onClick={() => handleCategorySelect(category.id)}
-                       whileHover={{ scale: 1.02, x: 4 }}
-                       whileTap={{ scale: 0.98 }}
-                       initial={{ opacity: 0, x: -20 }}
-                       animate={{ opacity: 1, x: 0 }}
-                       transition={{ delay: index * 0.1 }}
-                       className="relative rounded-2xl overflow-hidden shadow-xl border-2 border-transparent transition-all duration-300 hover:shadow-2xl h-[180px] md:h-[220px] w-full"
-                     >
-                       {/* Background Image */}
-                       <div className="absolute inset-0">
-                         <img
-                           src={categoryImageMap[category.id]}
-                           alt={category.name}
-                           className="w-full h-full object-cover"
-                         />
-                       </div>
-                       
-                       {/* Gradient Overlay - Left to Right */}
-                       <div className={`absolute inset-0 bg-gradient-to-r ${gradientOverlay}`} />
-                       
-                       {/* Content */}
-                       <div className="relative z-10 h-full flex flex-col items-center justify-center gap-3 md:gap-4 px-6 md:px-8">
-                         <div className="p-3 md:p-3.5 rounded-xl bg-white/20 backdrop-blur-sm">
-                           <Icon className="w-8 h-8 md:w-10 md:h-10 text-white drop-shadow-lg" />
-                         </div>
-                         <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg text-center px-4 py-2 md:px-6 md:py-3 rounded-xl bg-black/50 backdrop-blur-sm">
-                           {category.name}
-                         </span>
-                       </div>
-                     </motion.button>
+                    <motion.button
+                      key={category.id}
+                      onClick={() => handleCategorySelect(category.id)}
+                      whileHover={{ scale: 1.02, x: 4 }}
+                      whileTap={{ scale: 0.98 }}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="relative rounded-2xl overflow-hidden shadow-xl border-2 border-transparent transition-all duration-300 hover:shadow-2xl h-[180px] md:h-[220px] w-full cursor-pointer"
+                    >
+                      {/* Background Image */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        <img
+                          src={categoryImageMap[category.id]}
+                          alt={category.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      
+                      {/* Gradient Overlay - Left to Right */}
+                      <div className={`absolute inset-0 bg-gradient-to-r ${gradientOverlay} pointer-events-none`} />
+                      
+                      {/* Content */}
+                      <div className="relative z-10 h-full flex flex-col items-center justify-center gap-3 md:gap-4 px-6 md:px-8 pointer-events-none">
+                        <div className="p-3 md:p-3.5 rounded-xl bg-white/20 backdrop-blur-sm">
+                          <Icon className="w-8 h-8 md:w-10 md:h-10 text-white drop-shadow-lg" />
+                        </div>
+                        <span className="text-xl md:text-2xl font-bold text-white drop-shadow-lg text-center px-4 py-2 md:px-6 md:py-3 rounded-xl bg-black/50 backdrop-blur-sm">
+                          {category.name}
+                        </span>
+                      </div>
+                    </motion.button>
                    )
                  })}
                </div>
@@ -812,49 +824,27 @@ export default function Menu() {
           ) : (
             /* Category Selected View */
             <>
-              {/* Main Category Button - Top Left */}
-              <motion.button
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                onClick={() => {
-                  if (selectedMainCategory === 'tatlilar') {
-                    setTatliSubCategoryModalOpen(true)
-                  } else if (selectedMainCategory === 'yemekler') {
-                    setYemekModalOpen(true)
-                  } else if (selectedMainCategory === 'icecekler') {
-                    setIcecekSubCategoryModalOpen(true)
-                  } else {
-                    setSubCategoriesDrawerOpen(true)
-                  }
-                }}
-                className={`fixed top-24 left-0 z-40 flex items-center gap-2 pl-4 pr-6 py-3 rounded-r-full shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 text-white ${colors?.active || 'bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700'}`}
-              >
-                <span className="font-semibold">
-                  {selectedMainCategory === 'tatlilar' && activeCategory
-                    ? subCategories.tatlilar.find((cat) => cat.id === activeCategory)?.name || selectedCategory?.name
-                    : selectedMainCategory === 'icecekler' && activeCategory
-                    ? subCategories.icecekler.find((cat) => cat.id === activeCategory)?.name || selectedCategory?.name
-                    : selectedCategory?.name || 'YEMEK'}
-                </span>
-                <ChevronRight size={20} />
-              </motion.button>
-
-              {/* Ana Kategori Seçim Butonu - Top Right (Simetrik) */}
-              <motion.button
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                onClick={() => {
-                  setSelectedMainCategory(null)
-                  setActiveCategory(null)
-                  setTatliSubCategoryModalOpen(false)
-                  setYemekModalOpen(false)
-                  setIcecekSubCategoryModalOpen(false)
-                }}
-                className={`fixed top-24 right-0 z-40 flex items-center gap-2 pl-6 pr-4 py-3 rounded-l-full shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 text-white ${colors?.active || 'bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700'}`}
-              >
-                <ChevronLeft size={20} />
-                <span className="font-semibold">Kategoriler</span>
-              </motion.button>
+              {/* Main Category Button - Top Left - Sadece activeCategory varken göster */}
+              {activeCategory && (
+                <motion.button
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  onClick={() => {
+                    // Alt kategoriden geri dön
+                    setActiveCategory(null)
+                  }}
+                  className={`fixed top-24 left-0 z-40 flex items-center gap-2 pl-4 pr-6 py-3 rounded-r-full shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 text-white ${colors?.active || 'bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700'}`}
+                >
+                  <ChevronLeft size={20} />
+                  <span className="font-semibold">
+                    {selectedMainCategory === 'tatlilar' && activeCategory
+                      ? subCategories.tatlilar.find((cat) => cat.id === activeCategory)?.name || selectedCategory?.name
+                      : selectedMainCategory === 'icecekler' && activeCategory
+                      ? subCategories.icecekler.find((cat) => cat.id === activeCategory)?.name || selectedCategory?.name
+                      : selectedCategory?.name || 'YEMEK'}
+                  </span>
+                </motion.button>
+              )}
 
 
               {/* Menu Content */}
@@ -882,7 +872,79 @@ export default function Menu() {
                   </motion.div>
                 ) : selectedMainCategory === 'tatlilar' || selectedMainCategory === 'icecekler' ? (
                   <>
-                    {activeCategory && menuItems[activeCategory] && (
+                    {!activeCategory ? (
+                      /* Alt Kategori Seçim Ekranı */
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-col items-center justify-start min-h-[70vh] py-2"
+                      >
+                        <h2 className="text-2xl md:text-3xl font-display font-bold mb-6 text-gray-900 text-center">
+                          {selectedMainCategory === 'tatlilar' ? 'Tatlı Seçenekleri' : 'İçecek Seçenekleri'}
+                        </h2>
+                        <p className="text-base md:text-lg text-gray-600 mb-8 text-center">Lütfen bir kategori seçin</p>
+
+                        {/* Alt Kategoriler Grid */}
+                        <div className={`grid ${selectedMainCategory === 'tatlilar' ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'} gap-4 w-full max-w-4xl`}>
+                          {subCategories[selectedMainCategory].map((subCategory, index) => {
+                            const subCategoryImageMap = {
+                              kruvasanlar: kruvasanImage,
+                              fransiz: fransizImage,
+                              sutlu: tatliImage,
+                              makara: makaraImage,
+                              sicak: sicakImage,
+                              soguk: icecekImage,
+                            }
+                            
+                            const image = subCategoryImageMap[subCategory.id] || (selectedMainCategory === 'tatlilar' ? tatliImage : icecekImage)
+                            const gradientOverlay = selectedMainCategory === 'tatlilar'
+                              ? 'from-primary-600/80 via-primary-500/60 to-primary-400/40'
+                              : 'from-emerald-600/80 via-emerald-500/60 to-emerald-400/40'
+                            
+                            return (
+                              <motion.button
+                                key={subCategory.id}
+                                onClick={() => {
+                                  if (selectedMainCategory === 'tatlilar') {
+                                    handleTatliSubCategorySelect(subCategory.id)
+                                  } else {
+                                    handleIcecekSubCategorySelect(subCategory.id)
+                                  }
+                                }}
+                                whileHover={{ scale: 1.02, y: -4 }}
+                                whileTap={{ scale: 0.98 }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="relative rounded-2xl overflow-hidden shadow-xl border-2 border-gray-200 hover:border-primary-400 transition-all duration-300 group h-40 md:h-48 cursor-pointer"
+                              >
+                                {/* Background Image */}
+                                <div className="absolute inset-0 pointer-events-none">
+                                  <img
+                                    src={image}
+                                    alt={subCategory.name}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                  />
+                                </div>
+                                
+                                {/* Gradient Overlay */}
+                                <div className={`absolute inset-0 bg-gradient-to-br ${gradientOverlay} group-hover:from-primary-600/90 group-hover:via-primary-500/70 group-hover:to-primary-400/50 transition-all duration-300 pointer-events-none`} />
+                                
+                                {/* Content */}
+                                <div className="relative z-10 h-full flex items-center justify-center p-4 pointer-events-none">
+                                  <h3 className="text-xl md:text-2xl font-bold text-white drop-shadow-lg text-center leading-tight">
+                                    {subCategory.name}
+                                  </h3>
+                                </div>
+                                
+                                {/* Hover Effect Border */}
+                                <div className="absolute inset-0 rounded-2xl border-4 border-white/0 group-hover:border-white/30 transition-all duration-300 pointer-events-none" />
+                              </motion.button>
+                            )
+                          })}
+                        </div>
+                      </motion.div>
+                    ) : activeCategory && menuItems[activeCategory] && (
                       <div className="space-y-4 overflow-visible">
                         {menuItems[activeCategory].map((item, index) => (
                           <motion.div
@@ -1142,10 +1204,10 @@ export default function Menu() {
                         onClick={() => handleCategorySelect(category.id)}
                         whileHover={{ scale: 1.02, y: -4 }}
                         whileTap={{ scale: 0.98 }}
-                        className="relative w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-transparent transition-all duration-300 h-32"
+                        className="relative w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-transparent transition-all duration-300 h-32 cursor-pointer"
                       >
                         {/* Background Image */}
-                        <div className="absolute inset-0">
+                        <div className="absolute inset-0 pointer-events-none">
                           <img
                             src={categoryImageMap[category.id]}
                             alt={category.name}
@@ -1154,10 +1216,10 @@ export default function Menu() {
                         </div>
                         
                         {/* Gradient Overlay - Left to Right */}
-                        <div className={`absolute inset-0 bg-gradient-to-r ${gradientOverlay}`} />
+                        <div className={`absolute inset-0 bg-gradient-to-r ${gradientOverlay} pointer-events-none`} />
                         
                         {/* Content */}
-                        <div className="relative z-10 h-full flex items-center gap-4 p-6">
+                        <div className="relative z-10 h-full flex items-center gap-4 p-6 pointer-events-none">
                           <div className={`p-3 rounded-xl ${isSelected ? 'bg-white/20 backdrop-blur-sm' : 'bg-black/20 backdrop-blur-sm'}`}>
                             <Icon 
                               size={32} 
@@ -1266,10 +1328,10 @@ export default function Menu() {
                           }}
                           whileHover={{ scale: 1.02, y: -4 }}
                           whileTap={{ scale: 0.98 }}
-                          className="relative w-full rounded-xl overflow-hidden shadow-2xl border-2 border-transparent transition-all duration-300 h-24"
+                          className="relative w-full rounded-xl overflow-hidden shadow-2xl border-2 border-transparent transition-all duration-300 h-24 cursor-pointer"
                         >
                           {/* Background Image */}
-                          <div className="absolute inset-0">
+                          <div className="absolute inset-0 pointer-events-none">
                             <img
                               src={subCategoryImage}
                               alt={subCategory.name}
@@ -1278,10 +1340,10 @@ export default function Menu() {
                           </div>
                           
                           {/* Gradient Overlay - Left to Right */}
-                          <div className={`absolute inset-0 bg-gradient-to-r ${gradientOverlay}`} />
+                          <div className={`absolute inset-0 bg-gradient-to-r ${gradientOverlay} pointer-events-none`} />
                           
                           {/* Content */}
-                          <div className="relative z-10 h-full flex items-center justify-between px-5">
+                          <div className="relative z-10 h-full flex items-center justify-between px-5 pointer-events-none">
                             <div className="flex-1 min-w-0">
                               <div className="inline-block px-4 py-2 rounded-xl bg-black/10 backdrop-blur-sm">
                                 <h3 className="text-lg font-bold text-white drop-shadow-lg whitespace-nowrap overflow-hidden text-ellipsis">
@@ -1383,199 +1445,6 @@ export default function Menu() {
         )}
       </AnimatePresence>
 
-      {/* İçecek Subcategory Selection Modal */}
-      <AnimatePresence>
-        {icecekSubCategoryModalOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIcecekSubCategoryModalOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
-            />
-            
-            {/* Modal */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-0 z-[101] flex items-center justify-center p-4"
-              onClick={() => setIcecekSubCategoryModalOpen(false)}
-            >
-              <motion.div
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-3xl shadow-2xl border-2 border-gray-200 p-4 md:p-6 max-w-4xl w-full h-[90vh] max-h-[90vh] flex flex-col"
-              >
-                {/* Header */}
-                <div className="text-center mb-4 md:mb-6 flex-shrink-0">
-                  <h2 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-1">
-                    İçecek Seçenekleri
-                  </h2>
-                  <p className="text-sm md:text-base text-gray-600">Lütfen bir kategori seçin</p>
-                </div>
-
-                {/* 2 Seçenek Grid - Flex grow ile kalan alanı kaplar */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 flex-1 min-h-0">
-                  {subCategories.icecekler.map((subCategory, index) => {
-                    const subCategoryImageMap = {
-                      sicak: sicakImage,
-                      soguk: icecekImage,
-                    }
-                    
-                    const image = subCategoryImageMap[subCategory.id] || icecekImage
-                    
-                    return (
-                      <motion.button
-                        key={subCategory.id}
-                        onClick={() => handleIcecekSubCategorySelect(subCategory.id)}
-                        whileHover={{ scale: 1.02, y: -4 }}
-                        whileTap={{ scale: 0.98 }}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-xl border-2 border-gray-200 hover:border-emerald-400 transition-all duration-300 group h-full"
-                      >
-                        {/* Background Image */}
-                        <div className="absolute inset-0">
-                          <img
-                            src={image}
-                            alt={subCategory.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                          />
-                        </div>
-                        
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/80 via-emerald-500/60 to-emerald-400/40 group-hover:from-emerald-600/90 group-hover:via-emerald-500/70 group-hover:to-emerald-400/50 transition-all duration-300" />
-                        
-                        {/* Content */}
-                        <div className="relative z-10 h-full flex items-center justify-center p-3 md:p-4">
-                          <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white drop-shadow-lg text-center leading-tight">
-                            {subCategory.name}
-                          </h3>
-                        </div>
-                        
-                        {/* Hover Effect Border */}
-                        <div className="absolute inset-0 rounded-xl md:rounded-2xl border-4 border-white/0 group-hover:border-white/30 transition-all duration-300" />
-                      </motion.button>
-                    )
-                  })}
-                </div>
-
-                {/* Close Button */}
-                <div className="mt-4 md:mt-6 flex justify-center flex-shrink-0">
-                  <button
-                    onClick={() => setIcecekSubCategoryModalOpen(false)}
-                    className="px-5 py-2 md:px-6 md:py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm md:text-base font-semibold transition-colors"
-                  >
-                    İptal
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Tatlı Subcategory Selection Modal */}
-      <AnimatePresence>
-        {tatliSubCategoryModalOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setTatliSubCategoryModalOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
-            />
-            
-            {/* Modal */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-0 z-[101] flex items-center justify-center p-4"
-              onClick={() => setTatliSubCategoryModalOpen(false)}
-            >
-              <motion.div
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-3xl shadow-2xl border-2 border-gray-200 p-4 md:p-6 max-w-4xl w-full h-[90vh] max-h-[90vh] flex flex-col"
-              >
-                {/* Header */}
-                <div className="text-center mb-4 md:mb-6 flex-shrink-0">
-                  <h2 className="text-2xl md:text-3xl font-display font-bold text-gray-900 mb-1">
-                    Tatlı Seçenekleri
-                  </h2>
-                  <p className="text-sm md:text-base text-gray-600">Lütfen bir kategori seçin</p>
-                </div>
-
-                {/* 4 Seçenek Grid - Flex grow ile kalan alanı kaplar */}
-                <div className="grid grid-cols-2 gap-3 md:gap-4 flex-1 min-h-0">
-                  {subCategories.tatlilar.map((subCategory, index) => {
-                    const subCategoryImageMap = {
-                      kruvasanlar: kruvasanImage,
-                      fransiz: fransizImage,
-                      sutlu: tatliImage,
-                      makara: makaraImage,
-                    }
-                    
-                    const image = subCategoryImageMap[subCategory.id] || tatliImage
-                    
-                    return (
-                      <motion.button
-                        key={subCategory.id}
-                        onClick={() => handleTatliSubCategorySelect(subCategory.id)}
-                        whileHover={{ scale: 1.02, y: -4 }}
-                        whileTap={{ scale: 0.98 }}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="relative rounded-xl md:rounded-2xl overflow-hidden shadow-xl border-2 border-gray-200 hover:border-primary-400 transition-all duration-300 group h-full"
-                      >
-                        {/* Background Image */}
-                        <div className="absolute inset-0">
-                          <img
-                            src={image}
-                            alt={subCategory.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                          />
-                        </div>
-                        
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary-600/80 via-primary-500/60 to-primary-400/40 group-hover:from-primary-600/90 group-hover:via-primary-500/70 group-hover:to-primary-400/50 transition-all duration-300" />
-                        
-                        {/* Content */}
-                        <div className="relative z-10 h-full flex items-center justify-center p-3 md:p-4">
-                          <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white drop-shadow-lg text-center leading-tight">
-                            {subCategory.name}
-                          </h3>
-                        </div>
-                        
-                        {/* Hover Effect Border */}
-                        <div className="absolute inset-0 rounded-xl md:rounded-2xl border-4 border-white/0 group-hover:border-white/30 transition-all duration-300" />
-                      </motion.button>
-                    )
-                  })}
-                </div>
-
-                {/* Close Button */}
-                <div className="mt-4 md:mt-6 flex justify-center flex-shrink-0">
-                  <button
-                    onClick={() => setTatliSubCategoryModalOpen(false)}
-                    className="px-5 py-2 md:px-6 md:py-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm md:text-base font-semibold transition-colors"
-                  >
-                    İptal
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
 
       {/* Image Lightbox Modal */}
       {selectedImage.url && (

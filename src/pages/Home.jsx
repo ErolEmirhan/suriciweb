@@ -1,41 +1,7 @@
-import { motion, AnimatePresence, useInView } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { ChefHat, Users, Award, Heart, ArrowRight, Star } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
-
-const AnimatedCounter = ({ value, duration = 1.5 }) => {
-  const [count, setCount] = useState(0)
-  const nodeRef = useRef(null)
-  const isInView = useInView(nodeRef, { once: true })
-
-  useEffect(() => {
-    if (!isInView) return
-
-    const numericValue = parseInt(value.replace(/\D/g, ''))
-    const suffix = value.replace(/[0-9]/g, '')
-    
-    let startTime
-    const animate = (currentTime) => {
-      if (!startTime) startTime = currentTime
-      const progress = Math.min((currentTime - startTime) / (duration * 1000), 1)
-      
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4)
-      const currentCount = Math.floor(easeOutQuart * numericValue)
-      
-      setCount(currentCount + suffix)
-      
-      if (progress < 1) {
-        requestAnimationFrame(animate)
-      } else {
-        setCount(value)
-      }
-    }
-    
-    requestAnimationFrame(animate)
-  }, [isInView, value, duration])
-
-  return <span ref={nodeRef}>{count || '0'}</span>
-}
+import { ArrowRight, Star } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 export default function Home() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -56,13 +22,6 @@ export default function Home() {
 
     return () => clearInterval(interval)
   }, [heroImages.length])
-
-  const stats = [
-    { icon: ChefHat, label: 'Uzman Şef', value: '5' },
-    { icon: Users, label: 'Mutlu Müşteri', value: '10K+' },
-    { icon: Award, label: 'Özel Tarifler', value: '25+' },
-    { icon: Heart, label: 'Chimney Çeşidi', value: '15+' },
-  ]
 
   const concepts = [
     {
@@ -102,55 +61,39 @@ export default function Home() {
       exit={{ opacity: 0, x: -100 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative h-screen flex items-start pt-20 md:pt-24 overflow-hidden">
-        {/* Background Image Slider with Overlay */}
+      {/* Hero Section - Ultra Modern & Minimal */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image Slider */}
         <div className="absolute inset-0 z-0">
           <AnimatePresence initial={false}>
             <motion.img
               key={currentImageIndex}
               src={heroImages[currentImageIndex]}
               alt="Trdelnik - Chimney Cake"
-              className="w-full h-full object-cover absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
+              className="w-full h-full object-cover absolute inset-0 scale-105"
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1.05 }}
+              exit={{ opacity: 0, scale: 1 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
             />
           </AnimatePresence>
-          {/* Modern Professional Overlay */}
-          <div className="absolute inset-0 z-10">
-            {/* Base Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/60 to-black/70" />
-            
-            {/* Radial Gradient from corners */}
-            <div className="absolute inset-0 bg-gradient-radial from-primary-600/20 via-transparent to-transparent opacity-50" 
-                 style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(221, 64, 134, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(221, 64, 134, 0.1) 0%, transparent 50%)' }} />
-            
-            {/* Subtle mesh pattern overlay */}
-            <div className="absolute inset-0 opacity-10"
-                 style={{ 
-                   backgroundImage: `
-                     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
-                   `,
-                   backgroundSize: '50px 50px'
-                 }} />
-            
-            {/* Backdrop blur for depth */}
-            <div className="absolute inset-0 backdrop-blur-[2px]" />
-          </div>
           
-          {/* Slider Indicators */}
-          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-20 flex gap-2">
+          {/* Minimal Sophisticated Overlay - Enhanced for Readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/75 backdrop-blur-[1px]" />
+          
+          {/* Subtle Glass Effect at Bottom */}
+          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/70 to-transparent" />
+          
+          {/* Minimal Slider Indicators */}
+          <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-30 flex gap-3">
             {heroImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentImageIndex(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                className={`h-[2px] transition-all duration-500 ${
                   index === currentImageIndex
-                    ? 'bg-white w-8'
-                    : 'bg-white/50 hover:bg-white/75'
+                    ? 'bg-white w-12'
+                    : 'bg-white/40 w-8 hover:bg-white/60'
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -158,68 +101,98 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Hero Content */}
-        <div className="container-custom relative z-20 text-center text-white pt-4">
+        {/* Hero Content - Centered & Elegant */}
+        <div className="container-custom relative z-20 text-center text-white px-4">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="max-w-5xl mx-auto"
           >
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-              <Link to="/menu" className="btn-primary shadow-2xl">
-                Tatlılarımızı Keşfedin
-              </Link>
-            </div>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold mb-6 drop-shadow-2xl" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 10px rgba(0,0,0,0.8)' }}>
-              Trdelnik & Chimney
-              <br />
-              <span className="text-primary-400 drop-shadow-2xl" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 10px rgba(0,0,0,0.8)' }}>Prag Tatlısı</span>
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-white font-medium max-w-4xl mx-auto drop-shadow-xl" style={{ textShadow: '0 3px 15px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.7)' }}>
-              Çekya'nın meşhur silindir tatlısı Trdelnik, Belçika'nın nefes kesen waffle'ları, Fransız pastahanelerinin zarif pastaları ve Paris'in özel kruvasanları... Hepsi gerçek Belçika çikolatasıyla buluşuyor
-            </p>
+             {/* Premium Badge - Gradient Text */}
+             <motion.div
+               initial={{ opacity: 0, scale: 0.9 }}
+               animate={{ opacity: 1, scale: 1 }}
+               transition={{ duration: 0.8, delay: 0.2 }}
+               className="inline-block mb-8"
+             >
+               <span 
+                 className="text-sm md:text-base tracking-[0.35em] uppercase font-bold"
+                 style={{ 
+                   background: 'linear-gradient(135deg, #fb69a7 0%, #f53d88 50%, #dd4086 100%)',
+                   WebkitBackgroundClip: 'text',
+                   WebkitTextFillColor: 'transparent',
+                   backgroundClip: 'text',
+                   filter: 'drop-shadow(0 2px 8px rgba(221,64,134,0.6)) drop-shadow(0 0 20px rgba(251,105,167,0.4))',
+                 }}
+               >
+                 Premium Patisserie
+               </span>
+             </motion.div>
+
+             {/* Main Heading - Ultra Clean */}
+             <h1 className="text-5xl md:text-7xl lg:text-8xl font-light mb-6 tracking-tight leading-[1.1]" style={{ textShadow: '0 4px 20px rgba(0,0,0,0.9), 0 2px 10px rgba(0,0,0,0.7)' }}>
+               <span className="font-extralight block">Trdelnik &</span>
+               <span className="font-semibold text-white">Chimney Cake</span>
+             </h1>
+
+             {/* Elegant Divider */}
+             <motion.div
+               initial={{ width: 0 }}
+               animate={{ width: '80px' }}
+               transition={{ duration: 0.8, delay: 0.4 }}
+               className="h-[1px] bg-white mx-auto mb-8"
+               style={{ boxShadow: '0 0 10px rgba(255,255,255,0.5)' }}
+             />
+
+             {/* Subtitle - Refined */}
+             <p className="text-base md:text-lg lg:text-xl text-white font-light max-w-2xl mx-auto mb-12 leading-relaxed tracking-wide" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.9), 0 1px 8px rgba(0,0,0,0.7)' }}>
+               Çekya'nın meşhur Prag tatlısından, Belçika waffle'larına. 
+               <br className="hidden md:block" />
+               Gerçek Belçika çikolatasıyla buluşan zarif lezzetler.
+             </p>
+
+            {/* CTA Button - Minimal & Sophisticated */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+               <Link 
+                 to="/menu" 
+                 className="group relative inline-flex items-center gap-4 px-12 py-5 text-sm md:text-base tracking-[0.2em] uppercase font-bold text-white overflow-hidden transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(221,64,134,0.6)]"
+                 style={{ 
+                   background: 'linear-gradient(135deg, #dd4086 0%, #f53d88 50%, #fb69a7 100%)',
+                   boxShadow: '0 10px 40px rgba(221,64,134,0.4), 0 0 20px rgba(221,64,134,0.3)',
+                   textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                 }}
+               >
+                 {/* Shine Effect */}
+                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+                 
+                 {/* Glow Effect on Hover */}
+                 <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-500" />
+                 
+                 <span className="relative z-10">Menümüzü Keşfedin</span>
+                 <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-2 transition-transform duration-500" />
+               </Link>
+            </motion.div>
           </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
+        {/* Minimal Scroll Indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 1 }}
-          className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-20"
+          transition={{ delay: 1.2, duration: 1 }}
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
         >
-          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
-            <motion.div
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-1.5 h-1.5 bg-white rounded-full mt-2"
-            />
-          </div>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="w-[1px] h-12 bg-gradient-to-b from-transparent via-white/60 to-transparent"
+          />
         </motion.div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-20 bg-primary-600">
-        <div className="container-custom">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center text-white"
-              >
-                <stat.icon className="w-12 h-12 mx-auto mb-4" />
-                <div className="text-4xl md:text-5xl font-bold mb-2">
-                  <AnimatedCounter value={stat.value} duration={1.5} />
-                </div>
-                <div className="text-lg text-primary-100">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
       </section>
 
       {/* Why Us Section */}
