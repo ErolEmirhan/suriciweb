@@ -33,3 +33,9 @@ print(f"🛡️  Hata Düzeltme: Maksimum seviye")
 print("=" * 60)
 print("\n💡 Bu yeni QR kodu deneyin!")
 
+
+
+
+
+
+

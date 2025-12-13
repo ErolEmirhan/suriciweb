@@ -29,3 +29,9 @@ except Exception as e:
     except ImportError:
         print("OpenCV kurulu değil. Manuel kontrol gerekiyor.")
 
+
+
+
+
+
+

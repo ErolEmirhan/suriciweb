@@ -53,3 +53,13 @@
   background: #c41d66;
 }
 
+/* Hide scrollbar for category scroll */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
