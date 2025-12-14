@@ -2,15 +2,19 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Star } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import akis1 from '../assets/akis1.png'
+import akis2 from '../assets/akis2.png'
+import akis3 from '../assets/akis3.png'
+import akis4 from '../assets/akis4.png'
 
 export default function Home() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   
   const heroImages = [
-    'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&q=80',
-    'https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1920&q=80',
-    'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=1920&q=80',
-    'https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=1920&q=80',
+    akis1,
+    akis2,
+    akis3,
+    akis4,
   ]
 
   useEffect(() => {

@@ -4,16 +4,9 @@ import { Leaf, UtensilsCrossed, IceCreamBowl, Coffee, X, ChevronLeft, ChevronRig
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import makaraLogo from '../assets/makara.png'
-import makaraImage from '../assets/makara.png'
-import trdelnikImage from '../assets/trdelnik.png'
 import tatliImage from '../assets/tatli.png'
 import yemekImage from '../assets/yemek.png'
 import icecekImage from '../assets/icecek.png'
-import fransizImage from '../assets/fransiz.png'
-import kruvasanImage from '../assets/kruvasan.png'
-import waffleImage from '../assets/waffle.png'
-import kahvaltiImage from '../assets/kahvalti.png'
-import sicakImage from '../assets/sicak.png'
 
 export default function Menu() {
   const [showMenuSplash, setShowMenuSplash] = useState(true)
