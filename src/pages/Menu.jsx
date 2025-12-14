@@ -131,53 +131,12 @@ export default function Menu() {
         // Sort by order if exists, otherwise by name
         productsData.sort((a, b) => (a.order || 0) - (b.order || 0))
         
-        // Firebase Storage'dan görselleri çek ve ürünlere ata
-        const productsWithImages = await Promise.all(
-          productsData.map(async (product) => {
-            // Eğer üründe zaten image varsa onu kullan
-            if (product.image) {
-              return product
-            }
-            
-            // Ürün ID'sine göre Storage'dan görsel ara
-            const productId = String(product.id || '')
-            const imageExtensions = ['jpg', 'jpeg', 'png', 'webp']
-            
-            for (const ext of imageExtensions) {
-              try {
-                // Farklı isim formatlarını dene
-                const possiblePaths = [
-                  `products/${productId}.${ext}`,
-                  `products/${productId}_${ext}`,
-                  `products/product_${productId}.${ext}`,
-                  `products/${productId}-${ext}`,
-                  `products/${productId}_image.${ext}`,
-                ]
-                
-                for (const imagePath of possiblePaths) {
-                  try {
-                    const imageRef = ref(storage, imagePath)
-                    const url = await getDownloadURL(imageRef)
-                    console.log('Görsel bulundu:', imagePath, 'Ürün:', product.name)
-                    return { ...product, image: url }
-                  } catch (err) {
-                    // Bu path'te görsel yok, devam et
-                    continue
-                  }
-                }
-              } catch (error) {
-                // Görsel bulunamadı, devam et
-                continue
-              }
-            }
-            
-            // Görsel bulunamadıysa orijinal ürünü döndür
-            return product
-          })
-        )
-        
-        setProducts(productsWithImages)
+        // Önce ürünleri göster, görselleri arka planda yükle
+        setProducts(productsData)
         setLoadingProducts(false)
+        
+        // Görselleri arka planda yükle (non-blocking)
+        loadProductImages(productsData)
       } catch (error) {
         console.error('Ürünler yüklenirken hata:', error)
         setLoadingProducts(false)
@@ -191,78 +150,35 @@ export default function Menu() {
   useEffect(() => {
     if (!selectedCategory) return
 
-    const checkStorageImages = async () => {
-      try {
-        // Storage'daki products klasöründeki tüm görselleri listele
-        const productsRef = ref(storage, 'products')
-        const imageList = await listAll(productsRef)
-        
-        // Tüm görsellerin URL'lerini al
-        const imageUrls = await Promise.all(
-          imageList.items.map(async (item) => {
-            try {
-              const url = await getDownloadURL(item)
-              // Dosya adından ürün ID'sini çıkar (örneğin: "16.jpg" -> "16")
-              const fileName = item.name.replace(/\.[^/.]+$/, '') // uzantıyı kaldır
-              // Farklı formatları dene: "16", "product_16", "16_image" vb.
-              let productId = fileName
-              if (fileName.startsWith('product_')) {
-                productId = fileName.replace('product_', '')
-              } else if (fileName.endsWith('_image')) {
-                productId = fileName.replace('_image', '')
-              }
-              return { productId, url, fileName: item.name }
-            } catch (error) {
-              return null
-            }
-          })
-        )
+    let isMounted = true
 
-        // Geçerli URL'leri filtrele
-        const validImages = imageUrls.filter(img => img !== null)
-        console.log('Storage\'dan bulunan görseller:', validImages)
+    // İlk yükleme - ürünler yüklendikten sonra görselleri çek
+    const timer = setTimeout(() => {
+      if (!isMounted) return
+      setProducts(prevProducts => {
+        if (prevProducts.length > 0 && isMounted) {
+          loadProductImages(prevProducts)
+        }
+        return prevProducts
+      })
+    }, 1000)
 
-        // Ürünleri güncelle - eşleşen görselleri ata
-        setProducts(prevProducts => {
-          if (prevProducts.length === 0) return prevProducts
-          
-          return prevProducts.map(product => {
-            // Eğer zaten görsel varsa ve geçerliyse, değiştirme
-            if (product.image && product.image.startsWith('http')) {
-              return product
-            }
+    // Her 5 saniyede bir Storage'daki yeni görselleri kontrol et
+    const interval = setInterval(() => {
+      if (!isMounted) return
+      setProducts(prevProducts => {
+        if (prevProducts.length > 0 && isMounted) {
+          loadProductImages(prevProducts)
+        }
+        return prevProducts
+      })
+    }, 5000)
 
-            // Ürün ID'sine göre görsel ara
-            const productIdStr = String(product.id || '')
-            const matchedImage = validImages.find(img => {
-              const imgProductId = String(img.productId || '')
-              return imgProductId === productIdStr || 
-                     img.fileName.startsWith(productIdStr + '.') ||
-                     img.fileName.startsWith(productIdStr + '_') ||
-                     img.fileName.includes('_' + productIdStr + '_') ||
-                     img.fileName === productIdStr
-            })
-
-            if (matchedImage) {
-              console.log('Ürün görseli güncellendi:', product.name, matchedImage.url)
-              return { ...product, image: matchedImage.url }
-            }
-
-            return product
-          })
-        })
-      } catch (error) {
-        console.error('Storage görselleri kontrol edilirken hata:', error)
-      }
+    return () => {
+      isMounted = false
+      clearTimeout(timer)
+      clearInterval(interval)
     }
-
-    // İlk kontrol
-    checkStorageImages()
-
-    // Her 5 saniyede bir kontrol et (real-time güncelleme için)
-    const interval = setInterval(checkStorageImages, 5000)
-
-    return () => clearInterval(interval)
   }, [selectedCategory, storage])
 
   // Menu splash screen - 2 saniye
@@ -324,6 +240,80 @@ export default function Menu() {
   const handleCategorySelect = (category) => {
     setDrawerOpen(false)
     setSelectedCategory(category)
+  }
+
+  // Firebase Storage'dan görselleri yükle ve ürünlere ata
+  const loadProductImages = async (productsData) => {
+    if (!productsData || productsData.length === 0) return
+
+    try {
+      // Storage'daki products klasöründeki tüm görselleri listele
+      const productsRef = ref(storage, 'products')
+      const imageList = await listAll(productsRef)
+      
+      // Tüm görsellerin URL'lerini al
+      const imageUrls = await Promise.all(
+        imageList.items.map(async (item) => {
+          try {
+            const url = await getDownloadURL(item)
+            // Dosya adından ürün ID'sini çıkar
+            const fileName = item.name.replace(/\.[^/.]+$/, '') // uzantıyı kaldır
+            
+            // Farklı formatları dene: "16", "product_16", "16_image" vb.
+            let productId = fileName
+            if (fileName.startsWith('product_')) {
+              productId = fileName.replace('product_', '')
+            } else if (fileName.endsWith('_image')) {
+              productId = fileName.replace('_image', '')
+            }
+            
+            return { productId, url, fileName: item.name, fullPath: item.fullPath }
+          } catch (error) {
+            return null
+          }
+        })
+      )
+
+      // Geçerli URL'leri filtrele
+      const validImages = imageUrls.filter(img => img !== null)
+      console.log('Storage\'dan bulunan görseller:', validImages)
+
+      // Ürünleri güncelle - eşleşen görselleri ata
+      setProducts(prevProducts => {
+        if (prevProducts.length === 0) return prevProducts
+        
+        return prevProducts.map(product => {
+          // Eğer zaten görsel varsa ve geçerliyse, değiştirme
+          if (product.image && product.image.startsWith('http')) {
+            return product
+          }
+
+          // Ürün ID'sine göre görsel ara
+          const productIdStr = String(product.id || '')
+          const matchedImage = validImages.find(img => {
+            const imgProductId = String(img.productId || '')
+            // Tam eşleşme
+            if (imgProductId === productIdStr) return true
+            // Dosya adı ürün ID'si ile başlıyor mu? (örn: "17.jpg", "17_image.jpg")
+            if (img.fileName.startsWith(productIdStr + '.') || 
+                img.fileName.startsWith(productIdStr + '_')) return true
+            // Dosya adı ürün ID'sini içeriyor mu?
+            if (img.fileName.includes('_' + productIdStr + '_') ||
+                img.fileName === productIdStr) return true
+            return false
+          })
+
+          if (matchedImage) {
+            console.log('Ürün görseli bulundu:', product.name, matchedImage.url)
+            return { ...product, image: matchedImage.url }
+          }
+
+          return product
+        })
+      })
+    } catch (error) {
+      console.error('Storage görselleri yüklenirken hata:', error)
+    }
   }
 
   // Get color classes for categories
