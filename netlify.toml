@@ -4,8 +4,6 @@
   
 [build.environment]
   NODE_VERSION = "18"
-  # Python yüklemeyi devre dışı bırak
-  PIP_REQUIRE_VIRTUALENV = "false"
 
 [[redirects]]
   from = "/*"
