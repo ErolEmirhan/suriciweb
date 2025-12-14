@@ -1,0 +1,6 @@
+requirements.txt
+*.py
+check_qr.py
+generate_*.py
+verify_*.py
+
