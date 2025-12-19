@@ -786,7 +786,7 @@ export default function Menu() {
                             <div 
                               className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0 cursor-pointer"
                               onClick={() => {
-                                const imageUrl = item.image || `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&h=800&fit=crop&q=90`
+                                const imageUrl = item.image || makaraLogo
                                 setSelectedImage({
                                   url: imageUrl,
                                   name: item.name
@@ -795,12 +795,12 @@ export default function Menu() {
                             >
                               <div className="w-full h-full rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-gray-100">
                                 <img
-                                  src={item.image || `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=400&h=400&fit=crop&q=80`}
+                                  src={item.image || makaraLogo}
                                   alt={item.name}
                                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                                   loading="lazy"
                                   onError={(e) => {
-                                    e.currentTarget.src = `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=400&h=400&fit=crop&q=80`
+                                    e.currentTarget.src = makaraLogo
                                   }}
                                 />
                               </div>
