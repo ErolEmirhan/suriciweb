@@ -17,56 +17,6 @@ export default function Menu() {
   const [loadingProducts, setLoadingProducts] = useState(false)
   const [selectedImage, setSelectedImage] = useState({ url: null, name: null })
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [failedImages, setFailedImages] = useState(new Set())
-  
-  // Görsel yükleme test fonksiyonu
-  const testImageLoad = (imageUrl, productId) => {
-    return new Promise((resolve) => {
-      const img = new Image()
-      let resolved = false
-      
-      const timeout = setTimeout(() => {
-        if (!resolved) {
-          resolved = true
-          console.warn(`⏱️ Görsel yükleme timeout: ${imageUrl}`)
-          setFailedImages(prev => new Set(prev).add(productId))
-          resolve(false)
-        }
-      }, 5000) // 5 saniye timeout
-      
-      img.onload = () => {
-        if (!resolved) {
-          resolved = true
-          clearTimeout(timeout)
-          if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-            console.log(`✅ Görsel test başarılı: ${imageUrl}`, {
-              width: img.naturalWidth,
-              height: img.naturalHeight
-            })
-            resolve(true)
-          } else {
-            console.warn(`⚠️ Görsel yüklendi ama boyut 0: ${imageUrl}`)
-            setFailedImages(prev => new Set(prev).add(productId))
-            resolve(false)
-          }
-        }
-      }
-      
-      img.onerror = () => {
-        if (!resolved) {
-          resolved = true
-          clearTimeout(timeout)
-          console.error(`❌ Görsel test başarısız: ${imageUrl}`)
-          setFailedImages(prev => new Set(prev).add(productId))
-          resolve(false)
-        }
-      }
-      
-      // CORS sorunlarını önlemek için referrerPolicy ekle
-      img.referrerPolicy = 'no-referrer'
-      img.src = imageUrl
-    })
-  }
   const [yemekModalOpen, setYemekModalOpen] = useState(false)
   const [milkshakeVarietiesOpen, setMilkshakeVarietiesOpen] = useState(false)
   const [frozenVarietiesOpen, setFrozenVarietiesOpen] = useState(false)
@@ -207,18 +157,14 @@ export default function Menu() {
         
         console.log('Bulunan ürünler:', productsData.length, productsData)
         
-        // Firestore'daki images collection'ından görselleri çek
+        // Firestore'daki images collection'ından görselleri çek - SADECE product_id ile
         const imagesRef = collection(db, 'images')
         const productsWithImages = await Promise.all(
           productsData.map(async (product) => {
             try {
               const productId = product.product_id || product.id
-              const productCategoryId = product.category_id || product.categoryId || categoryIdStr
-
               const productIdStr = String(productId)
               const productIdNum = Number(productId)
-              const productCategoryIdStr = String(productCategoryId)
-              const productCategoryIdNum = Number(productCategoryId)
 
               let imagesSnapshot = null
               
@@ -243,30 +189,6 @@ export default function Menu() {
                   }
                 } catch (e) {
                   console.log(`❌ String product_id sorgusu başarısız:`, e)
-                }
-              }
-              
-              // Hala bulunamadıysa category_id ile dene (sayısal)
-              if ((!imagesSnapshot || imagesSnapshot.empty) && !isNaN(productCategoryIdNum)) {
-                try {
-                  imagesSnapshot = await getDocs(query(imagesRef, where('category_id', '==', productCategoryIdNum)))
-                  if (!imagesSnapshot.empty) {
-                    console.log(`✅ Ürün ${product.name} için görsel bulundu (category_id numeric: ${productCategoryIdNum})`)
-                  }
-                } catch (e) {
-                  console.log(`❌ Sayısal category_id sorgusu başarısız:`, e)
-                }
-              }
-              
-              // Hala bulunamadıysa category_id ile dene (string)
-              if (!imagesSnapshot || imagesSnapshot.empty) {
-                try {
-                  imagesSnapshot = await getDocs(query(imagesRef, where('category_id', '==', productCategoryIdStr)))
-                  if (!imagesSnapshot.empty) {
-                    console.log(`✅ Ürün ${product.name} için görsel bulundu (category_id string: ${productCategoryIdStr})`)
-                  }
-                } catch (e) {
-                  console.log(`❌ String category_id sorgusu başarısız:`, e)
                 }
               }
 
@@ -296,7 +218,7 @@ export default function Menu() {
                   console.log(`⚠️ Ürün ${product.name} için görsel URL'si geçersiz veya boş`)
                 }
               } else {
-                console.log(`❌ Ürün ${product.name} (product_id: ${productId}, category_id: ${productCategoryId}) için görsel bulunamadı`)
+                console.log(`❌ Ürün ${product.name} (product_id: ${productId}) için görsel bulunamadı`)
               }
               
               return { ...product, image: imageUrl }
@@ -311,17 +233,6 @@ export default function Menu() {
         productsWithImages.sort((a, b) => (a.order || 0) - (b.order || 0))
         setProducts(productsWithImages)
         setLoadingProducts(false)
-        
-        // Görselleri önceden test et (preload) - async olarak
-        productsWithImages.forEach(product => {
-          if (product.image) {
-            testImageLoad(product.image, product.id).then(success => {
-              if (!success) {
-                console.log(`🔄 Ürün ${product.name} için görsel test edildi ve başarısız, fallback kullanılacak`)
-              }
-            })
-          }
-        })
       } catch (error) {
         console.error('Ürünler yüklenirken hata:', error)
         setLoadingProducts(false)
@@ -875,9 +786,7 @@ export default function Menu() {
                             <div 
                               className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0 cursor-pointer"
                               onClick={() => {
-                                const imageUrl = failedImages.has(item.id) 
-                                  ? `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&h=800&fit=crop&q=90`
-                                  : (item.image || `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&h=800&fit=crop&q=90`)
+                                const imageUrl = item.image || `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&h=800&fit=crop&q=90`
                                 setSelectedImage({
                                   url: imageUrl,
                                   name: item.name
@@ -885,90 +794,15 @@ export default function Menu() {
                               }}
                             >
                               <div className="w-full h-full rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-gray-100">
-                                    {(() => {
-                                      const imageSrc = failedImages.has(item.id) 
-                                        ? `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=400&h=400&fit=crop&q=80`
-                                        : (item.image || `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=400&h=400&fit=crop&q=80`)
-                                      
-                                      // Debug log
-                                      if (item.image && !failedImages.has(item.id)) {
-                                        console.log(`🖼️ Render: ${item.name} | Image URL:`, item.image, '| Failed:', failedImages.has(item.id))
-                                      }
-                                      
-                                      return (
-                                        <img
-                                          key={`${item.id}-${item.image || 'no-image'}-${failedImages.has(item.id) ? 'failed' : 'active'}`}
-                                          src={imageSrc}
-                                          alt={item.name}
-                                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                                          loading="lazy"
-                                          referrerPolicy="no-referrer"
-                                          onError={(e) => {
-                                            // Sadece gerçekten yüklenemiyorsa hata ver ve fallback'e geç
-                                            if (!failedImages.has(item.id) && item.image) {
-                                              const img = e.target
-                                              
-                                              console.error(`❌ onError tetiklendi: ${item.name}`, {
-                                                attemptedSrc: item.image,
-                                                currentSrc: img.currentSrc,
-                                                naturalWidth: img.naturalWidth,
-                                                naturalHeight: img.naturalHeight,
-                                                complete: img.complete
-                                              })
-                                              
-                                              // Görselin gerçekten yüklenip yüklenmediğini kontrol et
-                                              // Bazen onError yanlış tetiklenebilir, bu yüzden bir süre bekle
-                                              setTimeout(() => {
-                                                // Hala yüklenmemişse, fallback'e geç
-                                                if (img.naturalWidth === 0 && img.naturalHeight === 0) {
-                                                  console.error(`❌ Görsel gerçekten yüklenemedi, fallback'e geçiliyor: ${item.name}`)
-                                                  setFailedImages(prev => {
-                                                    const newSet = new Set(prev)
-                                                    newSet.add(item.id)
-                                                    return newSet
-                                                  })
-                                                } else {
-                                                  console.warn(`⚠️ onError tetiklendi ama görsel yüklü görünüyor: ${item.name}`, {
-                                                    naturalWidth: img.naturalWidth,
-                                                    naturalHeight: img.naturalHeight
-                                                  })
-                                                }
-                                              }, 500) // Biraz daha uzun bekle
-                                            }
-                                          }}
-                                          onLoad={(e) => {
-                                            const img = e.target
-                                            if (item.image && !failedImages.has(item.id)) {
-                                              // Görsel başarıyla yüklendiğini kontrol et
-                                              if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-                                                console.log(`✅ Görsel başarıyla yüklendi ve gösteriliyor: ${item.name}`, {
-                                                  src: item.image,
-                                                  naturalWidth: img.naturalWidth,
-                                                  naturalHeight: img.naturalHeight,
-                                                  currentSrc: img.currentSrc
-                                                })
-                                                // Eğer daha önce failed olarak işaretlenmişse, kaldır
-                                                if (failedImages.has(item.id)) {
-                                                  setFailedImages(prev => {
-                                                    const newSet = new Set(prev)
-                                                    newSet.delete(item.id)
-                                                    return newSet
-                                                  })
-                                                }
-                                              } else {
-                                                console.warn(`⚠️ Görsel yüklendi ama boyut 0: ${item.name}`)
-                                                // Boyut 0 ise, fallback'e geç
-                                                setFailedImages(prev => {
-                                                  const newSet = new Set(prev)
-                                                  newSet.add(item.id)
-                                                  return newSet
-                                                })
-                                              }
-                                            }
-                                          }}
-                                        />
-                                      )
-                                    })()}
+                                <img
+                                  src={item.image || `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=400&h=400&fit=crop&q=80`}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    e.currentTarget.src = `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=400&h=400&fit=crop&q=80`
+                                  }}
+                                />
                               </div>
                             </div>
 
