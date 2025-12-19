@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Leaf, UtensilsCrossed, IceCreamBowl, Coffee, X, ChevronLeft, ChevronRight, ChevronDown, Sparkles } from 'lucide-react'
 import { collection, getDocs, query, where, onSnapshot } from 'firebase/firestore'
-import { ref, listAll, getDownloadURL } from 'firebase/storage'
-import { db, storage } from '../config/firebase'
+import { db } from '../config/firebase'
 import makaraLogo from '../assets/makara.png'
 import tatliImage from '../assets/tatli.png'
 import yemekImage from '../assets/yemek.png'
@@ -18,6 +17,56 @@ export default function Menu() {
   const [loadingProducts, setLoadingProducts] = useState(false)
   const [selectedImage, setSelectedImage] = useState({ url: null, name: null })
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [failedImages, setFailedImages] = useState(new Set())
+  
+  // Görsel yükleme test fonksiyonu
+  const testImageLoad = (imageUrl, productId) => {
+    return new Promise((resolve) => {
+      const img = new Image()
+      let resolved = false
+      
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true
+          console.warn(`⏱️ Görsel yükleme timeout: ${imageUrl}`)
+          setFailedImages(prev => new Set(prev).add(productId))
+          resolve(false)
+        }
+      }, 5000) // 5 saniye timeout
+      
+      img.onload = () => {
+        if (!resolved) {
+          resolved = true
+          clearTimeout(timeout)
+          if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+            console.log(`✅ Görsel test başarılı: ${imageUrl}`, {
+              width: img.naturalWidth,
+              height: img.naturalHeight
+            })
+            resolve(true)
+          } else {
+            console.warn(`⚠️ Görsel yüklendi ama boyut 0: ${imageUrl}`)
+            setFailedImages(prev => new Set(prev).add(productId))
+            resolve(false)
+          }
+        }
+      }
+      
+      img.onerror = () => {
+        if (!resolved) {
+          resolved = true
+          clearTimeout(timeout)
+          console.error(`❌ Görsel test başarısız: ${imageUrl}`)
+          setFailedImages(prev => new Set(prev).add(productId))
+          resolve(false)
+        }
+      }
+      
+      // CORS sorunlarını önlemek için referrerPolicy ekle
+      img.referrerPolicy = 'no-referrer'
+      img.src = imageUrl
+    })
+  }
   const [yemekModalOpen, setYemekModalOpen] = useState(false)
   const [milkshakeVarietiesOpen, setMilkshakeVarietiesOpen] = useState(false)
   const [frozenVarietiesOpen, setFrozenVarietiesOpen] = useState(false)
@@ -31,6 +80,22 @@ export default function Menu() {
     icecekler: Coffee,
   }
 
+  // Kategori sıralaması fonksiyonu
+  const getCategoryOrder = (categoryName) => {
+    if (!categoryName) return 999
+    const name = categoryName.toLowerCase().trim()
+    if (name.includes('makara')) return 1
+    if (name.includes('fransız') || name.includes('fransiz')) return 2
+    if (name.includes('waffle') || name.includes('kruvasan')) return 3
+    if (name.includes('sütlü') || name.includes('sutlu') || name.includes('pasta')) return 4
+    if (name.includes('ekstra') || name.includes('çikolata') || name.includes('cikolata')) return 5
+    if ((name.includes('sıcak') || name.includes('sicak')) && name.includes('içecek')) return 6
+    if ((name.includes('soğuk') || name.includes('soguk')) && name.includes('içecek')) return 7
+    if (name.includes('frozen')) return 8
+    if (name.includes('milkshake')) return 9
+    return 999
+  }
+
   // Fetch categories from Firebase
   useEffect(() => {
     const fetchCategories = async () => {
@@ -41,8 +106,29 @@ export default function Menu() {
           id: doc.id,
           ...doc.data()
         }))
-        // Sort by order if exists, otherwise by name
-        categoriesData.sort((a, b) => (a.order || 0) - (b.order || 0))
+        
+        // Özel sıralama: önce getCategoryOrder'a göre, sonra Firebase order'a göre, son olarak alfabetik
+        categoriesData.sort((a, b) => {
+          const aName = a.name || ''
+          const bName = b.name || ''
+          const aOrder = getCategoryOrder(aName)
+          const bOrder = getCategoryOrder(bName)
+          
+          if (aOrder !== bOrder) {
+            return aOrder - bOrder
+          }
+          
+          // Aynı özel sırada ise Firebase order'a göre sırala
+          const aFirebaseOrder = a.order || 0
+          const bFirebaseOrder = b.order || 0
+          if (aFirebaseOrder !== bFirebaseOrder) {
+            return aFirebaseOrder - bFirebaseOrder
+          }
+          
+          // Son olarak alfabetik
+          return aName.localeCompare(bName, 'tr')
+        })
+        
         setCategories(categoriesData)
         setLoading(false)
       } catch (error) {
@@ -121,15 +207,121 @@ export default function Menu() {
         
         console.log('Bulunan ürünler:', productsData.length, productsData)
         
-        // Sort by order if exists, otherwise by name
-        productsData.sort((a, b) => (a.order || 0) - (b.order || 0))
+        // Firestore'daki images collection'ından görselleri çek
+        const imagesRef = collection(db, 'images')
+        const productsWithImages = await Promise.all(
+          productsData.map(async (product) => {
+            try {
+              const productId = product.product_id || product.id
+              const productCategoryId = product.category_id || product.categoryId || categoryIdStr
+
+              const productIdStr = String(productId)
+              const productIdNum = Number(productId)
+              const productCategoryIdStr = String(productCategoryId)
+              const productCategoryIdNum = Number(productCategoryId)
+
+              let imagesSnapshot = null
+              
+              // Önce product_id ile sayısal olarak dene
+              if (!isNaN(productIdNum)) {
+                try {
+                  imagesSnapshot = await getDocs(query(imagesRef, where('product_id', '==', productIdNum)))
+                  if (!imagesSnapshot.empty) {
+                    console.log(`✅ Ürün ${product.name} için görsel bulundu (product_id numeric: ${productIdNum})`)
+                  }
+                } catch (e) {
+                  console.log(`❌ Sayısal product_id sorgusu başarısız:`, e)
+                }
+              }
+              
+              // Eğer bulunamadıysa string olarak dene
+              if (!imagesSnapshot || imagesSnapshot.empty) {
+                try {
+                  imagesSnapshot = await getDocs(query(imagesRef, where('product_id', '==', productIdStr)))
+                  if (!imagesSnapshot.empty) {
+                    console.log(`✅ Ürün ${product.name} için görsel bulundu (product_id string: ${productIdStr})`)
+                  }
+                } catch (e) {
+                  console.log(`❌ String product_id sorgusu başarısız:`, e)
+                }
+              }
+              
+              // Hala bulunamadıysa category_id ile dene (sayısal)
+              if ((!imagesSnapshot || imagesSnapshot.empty) && !isNaN(productCategoryIdNum)) {
+                try {
+                  imagesSnapshot = await getDocs(query(imagesRef, where('category_id', '==', productCategoryIdNum)))
+                  if (!imagesSnapshot.empty) {
+                    console.log(`✅ Ürün ${product.name} için görsel bulundu (category_id numeric: ${productCategoryIdNum})`)
+                  }
+                } catch (e) {
+                  console.log(`❌ Sayısal category_id sorgusu başarısız:`, e)
+                }
+              }
+              
+              // Hala bulunamadıysa category_id ile dene (string)
+              if (!imagesSnapshot || imagesSnapshot.empty) {
+                try {
+                  imagesSnapshot = await getDocs(query(imagesRef, where('category_id', '==', productCategoryIdStr)))
+                  if (!imagesSnapshot.empty) {
+                    console.log(`✅ Ürün ${product.name} için görsel bulundu (category_id string: ${productCategoryIdStr})`)
+                  }
+                } catch (e) {
+                  console.log(`❌ String category_id sorgusu başarısız:`, e)
+                }
+              }
+
+              let imageUrl = null
+              if (imagesSnapshot && !imagesSnapshot.empty) {
+                const firstImage = imagesSnapshot.docs[0].data()
+                imageUrl = firstImage.url || firstImage.image || firstImage.imageUrl || null
+                
+                // URL geçerliliğini kontrol et
+                if (imageUrl) {
+                  try {
+                    const urlObj = new URL(imageUrl)
+                    // HTTP veya HTTPS olmalı
+                    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+                      console.warn(`⚠️ Geçersiz URL protokolü: ${imageUrl}`)
+                      imageUrl = null
+                    }
+                  } catch (e) {
+                    console.warn(`⚠️ Geçersiz URL formatı: ${imageUrl}`, e)
+                    imageUrl = null
+                  }
+                }
+                
+                if (imageUrl) {
+                  console.log(`✅ Ürün ${product.name} için görsel bulundu:`, imageUrl)
+                } else {
+                  console.log(`⚠️ Ürün ${product.name} için görsel URL'si geçersiz veya boş`)
+                }
+              } else {
+                console.log(`❌ Ürün ${product.name} (product_id: ${productId}, category_id: ${productCategoryId}) için görsel bulunamadı`)
+              }
+              
+              return { ...product, image: imageUrl }
+            } catch (error) {
+              console.error(`Ürün ${product.name} için görsel yüklenirken hata:`, error)
+              return { ...product, image: null }
+            }
+          })
+        )
         
-        // Önce ürünleri göster, görselleri arka planda yükle
-        setProducts(productsData)
+        // Sort by order if exists, otherwise by name
+        productsWithImages.sort((a, b) => (a.order || 0) - (b.order || 0))
+        setProducts(productsWithImages)
         setLoadingProducts(false)
         
-        // Görselleri arka planda yükle (non-blocking)
-        loadProductImages(productsData)
+        // Görselleri önceden test et (preload) - async olarak
+        productsWithImages.forEach(product => {
+          if (product.image) {
+            testImageLoad(product.image, product.id).then(success => {
+              if (!success) {
+                console.log(`🔄 Ürün ${product.name} için görsel test edildi ve başarısız, fallback kullanılacak`)
+              }
+            })
+          }
+        })
       } catch (error) {
         console.error('Ürünler yüklenirken hata:', error)
         setLoadingProducts(false)
@@ -139,40 +331,6 @@ export default function Menu() {
     fetchProducts()
   }, [selectedCategory])
 
-  // Firebase Storage'dan görselleri periyodik olarak kontrol et ve güncelle
-  useEffect(() => {
-    if (!selectedCategory) return
-
-    let isMounted = true
-
-    // İlk yükleme - ürünler yüklendikten sonra görselleri çek
-    const timer = setTimeout(() => {
-      if (!isMounted) return
-      setProducts(prevProducts => {
-        if (prevProducts.length > 0 && isMounted) {
-          loadProductImages(prevProducts)
-        }
-        return prevProducts
-      })
-    }, 1000)
-
-    // Her 5 saniyede bir Storage'daki yeni görselleri kontrol et
-    const interval = setInterval(() => {
-      if (!isMounted) return
-      setProducts(prevProducts => {
-        if (prevProducts.length > 0 && isMounted) {
-          loadProductImages(prevProducts)
-        }
-        return prevProducts
-      })
-    }, 5000)
-
-    return () => {
-      isMounted = false
-      clearTimeout(timer)
-      clearInterval(interval)
-    }
-  }, [selectedCategory, storage])
 
   // Menu splash screen - 2 saniye
   useEffect(() => {
@@ -229,85 +387,95 @@ export default function Menu() {
     icecekler: icecekImage
   }
 
+  // Kategori ismine göre özel görsel mapping
+  const getCategoryBackgroundImage = (categoryName) => {
+    if (!categoryName) {
+      console.log('⚠️ Kategori ismi yok')
+      return null
+    }
+    
+    const name = categoryName.toLowerCase().trim()
+    const originalName = categoryName
+    
+    console.log('🔍 Kategori görsel kontrolü:', originalName, '->', name)
+    
+    // Sıcak İçecekler - Hot drinks (coffee, tea) - EN ÖNCE KONTROL ET
+    const hasIcecek = name.includes('içecek') || name.includes('icecek') || name.includes('içeçek') ||
+                      originalName.includes('İçecek') || originalName.includes('Icecek') ||
+                      originalName.includes('İÇECEK') || originalName.includes('ICECEK')
+    const hasSicak = name.includes('sıcak') || name.includes('sicak') ||
+                     originalName.includes('Sıcak') || originalName.includes('SICAK')
+    const hasSoguk = name.includes('soğuk') || name.includes('soguk') ||
+                     originalName.includes('Soğuk') || originalName.includes('SOĞUK')
+    
+    if (hasIcecek && hasSicak) {
+      console.log('✅ SICAK İÇECEK görseli seçildi:', originalName)
+      return 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800&h=800&fit=crop&q=90'
+    }
+    
+    if (hasIcecek && hasSoguk) {
+      console.log('✅ SOĞUK İÇECEK görseli seçildi:', originalName)
+      return 'https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=800&h=800&fit=crop&q=90'
+    }
+    
+    // Makaralar - Trdelnik/Chimney Cake görselleri
+    if (name.includes('makara')) {
+      console.log('✅ MAKARALAR görseli seçildi:', originalName)
+      return 'https://images.getrecipekit.com/20240413131649-k-c3-bcrt-c5-91skal-c3-a1cs-20-20hungarian-20chimney-20cake.jpg?aspect_ratio=16:9&quality=90&'
+    }
+    
+    // Fransız Pastalar - French pastries
+    if (name.includes('fransız') || name.includes('fransiz')) {
+      console.log('✅ FRANSIZ PASTALAR görseli seçildi:', originalName)
+      return 'https://www.unileverfoodsolutions.com.tr/konsept-uygulamalarimiz/dunya-mutfagi/en-unlu-6-fransiz-tatlisi/jcr:content/parsys/content/image_copy_copy_9773.img.jpg/1624559562947.jpg'
+    }
+    
+    // Kruvasanlar - Croissants
+    if (name.includes('kruvasan')) {
+      console.log('✅ KRUVASANLAR görseli seçildi:', originalName)
+      return 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&h=800&fit=crop&q=90'
+    }
+    
+    // Wafflelar - Waffles
+    if (name.includes('waffle')) {
+      console.log('✅ WAFLELAR görseli seçildi:', originalName)
+      return 'https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=800&h=800&fit=crop&q=90'
+    }
+    
+    // Sütlü Tatlılar ve Pastalar - Milk desserts and cakes
+    if (name.includes('sütlü') || name.includes('sutlu') || name.includes('pasta')) {
+      console.log('✅ SÜTLÜ TATLILAR görseli seçildi:', originalName)
+      return 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=800&fit=crop&q=90'
+    }
+    
+    // Ekstra Çikolata - Extra chocolate
+    if (name.includes('ekstra') || name.includes('çikolata') || name.includes('cikolata')) {
+      console.log('✅ EKSTRA ÇİKOLATA görseli seçildi:', originalName)
+      return 'https://images.unsplash.com/photo-1606312619070-d48b4e6b3a3e?w=800&h=800&fit=crop&q=90'
+    }
+    
+    // Frozenlar - Frozen desserts
+    if (name.includes('frozen')) {
+      console.log('✅ FROZENLAR görseli seçildi:', originalName)
+      return 'https://images.unsplash.com/photo-1563805042-7684c019e1b3?w=800&h=800&fit=crop&q=90'
+    }
+    
+    // Milkshakeler - Milkshakes
+    if (name.includes('milkshake')) {
+      console.log('✅ MİLKSHAKELER görseli seçildi:', originalName)
+      return 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=800&h=800&fit=crop&q=90'
+    }
+    
+    console.log('⚠️ Eşleşme bulunamadı, varsayılan görsel:', originalName)
+    return null
+  }
+
   // Handle category selection
   const handleCategorySelect = (category) => {
     setDrawerOpen(false)
     setSelectedCategory(category)
   }
 
-  // Firebase Storage'dan görselleri yükle ve ürünlere ata
-  const loadProductImages = async (productsData) => {
-    if (!productsData || productsData.length === 0) return
-
-    try {
-      // Storage'daki products klasöründeki tüm görselleri listele
-      const productsRef = ref(storage, 'products')
-      const imageList = await listAll(productsRef)
-      
-      // Tüm görsellerin URL'lerini al
-      const imageUrls = await Promise.all(
-        imageList.items.map(async (item) => {
-          try {
-            const url = await getDownloadURL(item)
-            // Dosya adından ürün ID'sini çıkar
-            const fileName = item.name.replace(/\.[^/.]+$/, '') // uzantıyı kaldır
-            
-            // Farklı formatları dene: "16", "product_16", "16_image" vb.
-            let productId = fileName
-            if (fileName.startsWith('product_')) {
-              productId = fileName.replace('product_', '')
-            } else if (fileName.endsWith('_image')) {
-              productId = fileName.replace('_image', '')
-            }
-            
-            return { productId, url, fileName: item.name, fullPath: item.fullPath }
-          } catch (error) {
-            return null
-          }
-        })
-      )
-
-      // Geçerli URL'leri filtrele
-      const validImages = imageUrls.filter(img => img !== null)
-      console.log('Storage\'dan bulunan görseller:', validImages)
-
-      // Ürünleri güncelle - eşleşen görselleri ata
-      setProducts(prevProducts => {
-        if (prevProducts.length === 0) return prevProducts
-        
-        return prevProducts.map(product => {
-          // Eğer zaten görsel varsa ve geçerliyse, değiştirme
-          if (product.image && product.image.startsWith('http')) {
-            return product
-          }
-
-          // Ürün ID'sine göre görsel ara
-          const productIdStr = String(product.id || '')
-          const matchedImage = validImages.find(img => {
-            const imgProductId = String(img.productId || '')
-            // Tam eşleşme
-            if (imgProductId === productIdStr) return true
-            // Dosya adı ürün ID'si ile başlıyor mu? (örn: "17.jpg", "17_image.jpg")
-            if (img.fileName.startsWith(productIdStr + '.') || 
-                img.fileName.startsWith(productIdStr + '_')) return true
-            // Dosya adı ürün ID'sini içeriyor mu?
-            if (img.fileName.includes('_' + productIdStr + '_') ||
-                img.fileName === productIdStr) return true
-            return false
-          })
-
-          if (matchedImage) {
-            console.log('Ürün görseli bulundu:', product.name, matchedImage.url)
-            return { ...product, image: matchedImage.url }
-          }
-
-          return product
-        })
-      })
-    } catch (error) {
-      console.error('Storage görselleri yüklenirken hata:', error)
-    }
-  }
 
   // Get color classes for categories
   const getCategoryColors = (categoryId) => {
@@ -482,8 +650,8 @@ export default function Menu() {
         transition={{ duration: 0.3, ease: "easeInOut" }}
         className="overflow-hidden relative">
        {/* Menu Section */}
-       <section className={`${!selectedCategory ? '' : 'py-24'} bg-gray-50 min-h-screen`}>
-         <div className="container-custom">
+       <section className={`${!selectedCategory ? '' : 'py-24'} bg-gray-50 min-h-screen overflow-x-visible`}>
+         <div className="container-custom overflow-x-visible">
            {loading && !selectedCategory ? (
              /* Loading State */
              <div className="flex items-center justify-center min-h-screen">
@@ -504,65 +672,138 @@ export default function Menu() {
                </h2>
                {/* Kaydırılabilir kategori grid container */}
                <div 
-                 className="w-full overflow-y-auto pb-4 scrollbar-hide flex-1" 
+                 className="w-full overflow-y-auto pb-4 scrollbar-hide flex-1 overflow-x-visible" 
                  style={{ 
                    scrollbarWidth: 'none',
                    msOverflowStyle: 'none',
                    WebkitOverflowScrolling: 'touch'
                  }}
                >
-                 <div className="grid grid-cols-2 gap-3 md:gap-4 px-4 md:px-6 max-w-2xl mx-auto">
-                   {categories && categories.length > 0 ? categories.map((category, index) => {
-                     const Icon = iconMap[category.id] || IceCreamBowl
-                     const categoryImage = category.image || categoryImageMap[category.id] || tatliImage
-                     
-                     // Gradient overlay renkleri
-                     const categoryIdStr = String(category.id || '')
-                     const gradientOverlay = categoryIdStr === 'tatlilar' || categoryIdStr.includes('tatli')
-                       ? 'from-primary-600/80 via-primary-500/40 to-transparent'
-                       : categoryIdStr === 'yemekler' || categoryIdStr.includes('yemek')
-                       ? 'from-orange-600/80 via-orange-500/40 to-transparent'
-                       : 'from-emerald-600/80 via-emerald-500/40 to-transparent'
-                     
-                     return (
-                      <motion.button
-                        key={category.id}
-                        onClick={() => handleCategorySelect(category)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="relative rounded-xl overflow-hidden shadow-lg border-2 border-transparent transition-all duration-300 hover:shadow-xl aspect-square w-full cursor-pointer"
-                      >
-                        {/* Background Image */}
-                        <div className="absolute inset-0 pointer-events-none">
-                          <img
-                            src={categoryImage}
-                            alt={category.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        
-                        {/* Gradient Overlay */}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${gradientOverlay} pointer-events-none`} />
-                        
-                        {/* Content */}
-                        <div className="relative z-10 h-full flex flex-col items-center justify-center gap-2 px-4 pointer-events-none">
-                          <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
-                            <Icon className="w-6 h-6 md:w-7 md:h-7 text-white drop-shadow-lg" />
+                 <div className="w-full overflow-x-visible">
+                   <div className="grid grid-cols-2 w-full ml-3 md:ml-5" style={{ gap: '0.5rem', gridTemplateColumns: '1fr 1fr' }}>
+                     {categories && categories.length > 0 ? categories.map((category, index) => {
+                       const Icon = iconMap[category.id] || IceCreamBowl
+                       
+                       // Staggered layout: çift indexler soldan, tek indexler sağdan girintili
+                       const isEven = index % 2 === 0
+                       const extendClass = isEven ? '-ml-4 md:-ml-6' : '-mr-4 md:-mr-6'
+                       const borderRadiusClass = isEven 
+                         ? 'rounded-r-2xl md:rounded-r-3xl rounded-l-none' 
+                         : 'rounded-l-2xl md:rounded-l-3xl rounded-r-none'
+                       
+                       // Kategori ismine göre görsel seç
+                       const categoryNameLowerCase = (category.name || '').toLowerCase().trim()
+                       const originalName = category.name || ''
+                       
+                       // İçecek kontrolü - daha geniş kontrol
+                       const hasIcecek = categoryNameLowerCase.includes('içecek') || 
+                                        categoryNameLowerCase.includes('icecek') || 
+                                        categoryNameLowerCase.includes('içeçek') ||
+                                        originalName.includes('İçecek') || 
+                                        originalName.includes('Icecek') ||
+                                        originalName.includes('İÇECEK') || 
+                                        originalName.includes('ICECEK')
+                       
+                       const hasSicak = categoryNameLowerCase.includes('sıcak') || 
+                                        categoryNameLowerCase.includes('sicak') ||
+                                        originalName.includes('Sıcak') || 
+                                        originalName.includes('SICAK')
+                       
+                       const hasSoguk = categoryNameLowerCase.includes('soğuk') || 
+                                       categoryNameLowerCase.includes('soguk') ||
+                                       originalName.includes('Soğuk') || 
+                                       originalName.includes('SOĞUK')
+                       
+                       // Gradient ve Border Color Logic - ÖNCE SARI KONTROL ET
+                       const isYellowCategory = (hasIcecek && hasSicak) || (hasIcecek && hasSoguk)
+                       
+                       const isBlueCategory = 
+                         categoryNameLowerCase.includes('frozen') || 
+                         categoryNameLowerCase.includes('milkshake')
+                       
+                       // Pembe kategori kontrolü - içecek olmayan kategoriler
+                       const isPinkCategory = !isYellowCategory && (
+                         categoryNameLowerCase.includes('makara') ||
+                         categoryNameLowerCase.includes('fransız') || categoryNameLowerCase.includes('fransiz') ||
+                         categoryNameLowerCase.includes('kruvasan') ||
+                         categoryNameLowerCase.includes('waffle') ||
+                         (categoryNameLowerCase.includes('sütlü') || categoryNameLowerCase.includes('sutlu') || 
+                          categoryNameLowerCase.includes('pasta')) ||
+                         categoryNameLowerCase.includes('ekstra') || 
+                         categoryNameLowerCase.includes('çikolata') || categoryNameLowerCase.includes('cikolata')
+                       )
+                       
+                       // Debug log
+                       console.log(`🎨 Kategori: ${originalName} | hasIcecek: ${hasIcecek} | hasSicak: ${hasSicak} | hasSoguk: ${hasSoguk} | isYellow: ${isYellowCategory} | isBlue: ${isBlueCategory} | isPink: ${isPinkCategory}`)
+                       
+                       // Gradient overlay renkleri - öncelik sırası: Sarı > Mavi > Pembe
+                       let gradientOverlay = 'from-primary-600/80 via-primary-500/40 to-transparent'
+                       let borderColor = 'border-primary-500/50'
+                       
+                       if (isYellowCategory) {
+                         gradientOverlay = 'from-yellow-500/80 via-yellow-400/50 to-transparent'
+                         borderColor = 'border-yellow-500/50'
+                         console.log(`✅ ${originalName} -> SARI GRADIENT`)
+                       } else if (isBlueCategory) {
+                         gradientOverlay = 'from-blue-500/80 via-blue-400/50 to-transparent'
+                         borderColor = 'border-blue-500/50'
+                         console.log(`✅ ${originalName} -> MAVİ GRADIENT`)
+                       } else if (isPinkCategory) {
+                         gradientOverlay = 'from-pink-500/80 via-pink-400/50 to-transparent'
+                         borderColor = 'border-pink-500/50'
+                         console.log(`✅ ${originalName} -> PEMBE GRADIENT`)
+                       }
+                       
+                       // Arkaplan görseli seçimi
+                       const customImage = getCategoryBackgroundImage(category.name)
+                       const categoryImage = customImage || category.image || categoryImageMap[category.id] || tatliImage
+                       console.log('📸 Kategori görseli:', category.name, '| Custom:', customImage ? '✅' : '❌', '| Final:', categoryImage ? categoryImage.substring(0, 50) + '...' : 'null')
+                       
+                       return (
+                        <motion.button
+                          key={category.id}
+                          onClick={() => handleCategorySelect(category)}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className={`relative ${borderRadiusClass} overflow-hidden shadow-2xl border-2 ${borderColor} transition-all duration-500 hover:shadow-3xl aspect-square w-full cursor-pointer group ${extendClass}`}
+                        >
+                          {/* Background Image */}
+                          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                            <motion.img 
+                              src={categoryImage} 
+                              alt={category.name} 
+                              className="w-full h-full object-cover"
+                              whileHover={{ scale: 1.1 }}
+                              transition={{ duration: 0.5 }}
+                            />
                           </div>
-                          <span className="text-sm md:text-base font-bold text-white drop-shadow-lg text-center px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm">
-                            {category.name}
-                          </span>
-                        </div>
-                      </motion.button>
-                     )
-                   }) : (
-                     <div className="text-center py-12 col-span-2">
-                       <p className="text-gray-600">Henüz kategori bulunmamaktadır</p>
-                     </div>
-                   )}
+                          
+                          {/* Gradient Overlay */}
+                          <div className={`absolute inset-0 bg-gradient-to-br ${gradientOverlay} pointer-events-none`} />
+                          
+                          {/* Content */}
+                          <div className="relative z-10 h-full flex flex-col items-center justify-center gap-2 px-4 pointer-events-none">
+                            <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+                              <Icon className="w-6 h-6 md:w-7 md:h-7 text-white drop-shadow-lg" />
+                            </div>
+                            <motion.span 
+                              className="text-sm md:text-base font-bold text-white drop-shadow-2xl text-center px-2.5 py-1.5 rounded-xl bg-black/40 backdrop-blur-sm border border-white/20 shadow-lg group-hover:bg-black/50 transition-all duration-300 w-[90%] whitespace-nowrap leading-tight overflow-hidden text-ellipsis"
+                              title={category.name}
+                            >
+                              {category.name}
+                            </motion.span>
+                          </div>
+                        </motion.button>
+                       )
+                     }) : (
+                       <div className="text-center py-12 col-span-2">
+                         <p className="text-gray-600">Henüz kategori bulunmamaktadır</p>
+                       </div>
+                     )}
+                   </div>
                  </div>
                </div>
             </motion.div>
@@ -634,18 +875,100 @@ export default function Menu() {
                             <div 
                               className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0 cursor-pointer"
                               onClick={() => {
+                                const imageUrl = failedImages.has(item.id) 
+                                  ? `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&h=800&fit=crop&q=90`
+                                  : (item.image || `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&h=800&fit=crop&q=90`)
                                 setSelectedImage({
-                              url: item.image || `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&h=800&fit=crop&q=90`,
+                                  url: imageUrl,
                                   name: item.name
                                 })
                               }}
                             >
-                              <div className="w-full h-full rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                                    <img
-                              src={item.image || `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=400&h=400&fit=crop&q=80`}
-                                      alt={item.name}
-                                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                                    />
+                              <div className="w-full h-full rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-gray-100">
+                                    {(() => {
+                                      const imageSrc = failedImages.has(item.id) 
+                                        ? `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=400&h=400&fit=crop&q=80`
+                                        : (item.image || `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=400&h=400&fit=crop&q=80`)
+                                      
+                                      // Debug log
+                                      if (item.image && !failedImages.has(item.id)) {
+                                        console.log(`🖼️ Render: ${item.name} | Image URL:`, item.image, '| Failed:', failedImages.has(item.id))
+                                      }
+                                      
+                                      return (
+                                        <img
+                                          key={`${item.id}-${item.image || 'no-image'}-${failedImages.has(item.id) ? 'failed' : 'active'}`}
+                                          src={imageSrc}
+                                          alt={item.name}
+                                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                          loading="lazy"
+                                          referrerPolicy="no-referrer"
+                                          onError={(e) => {
+                                            // Sadece gerçekten yüklenemiyorsa hata ver ve fallback'e geç
+                                            if (!failedImages.has(item.id) && item.image) {
+                                              const img = e.target
+                                              
+                                              console.error(`❌ onError tetiklendi: ${item.name}`, {
+                                                attemptedSrc: item.image,
+                                                currentSrc: img.currentSrc,
+                                                naturalWidth: img.naturalWidth,
+                                                naturalHeight: img.naturalHeight,
+                                                complete: img.complete
+                                              })
+                                              
+                                              // Görselin gerçekten yüklenip yüklenmediğini kontrol et
+                                              // Bazen onError yanlış tetiklenebilir, bu yüzden bir süre bekle
+                                              setTimeout(() => {
+                                                // Hala yüklenmemişse, fallback'e geç
+                                                if (img.naturalWidth === 0 && img.naturalHeight === 0) {
+                                                  console.error(`❌ Görsel gerçekten yüklenemedi, fallback'e geçiliyor: ${item.name}`)
+                                                  setFailedImages(prev => {
+                                                    const newSet = new Set(prev)
+                                                    newSet.add(item.id)
+                                                    return newSet
+                                                  })
+                                                } else {
+                                                  console.warn(`⚠️ onError tetiklendi ama görsel yüklü görünüyor: ${item.name}`, {
+                                                    naturalWidth: img.naturalWidth,
+                                                    naturalHeight: img.naturalHeight
+                                                  })
+                                                }
+                                              }, 500) // Biraz daha uzun bekle
+                                            }
+                                          }}
+                                          onLoad={(e) => {
+                                            const img = e.target
+                                            if (item.image && !failedImages.has(item.id)) {
+                                              // Görsel başarıyla yüklendiğini kontrol et
+                                              if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                                                console.log(`✅ Görsel başarıyla yüklendi ve gösteriliyor: ${item.name}`, {
+                                                  src: item.image,
+                                                  naturalWidth: img.naturalWidth,
+                                                  naturalHeight: img.naturalHeight,
+                                                  currentSrc: img.currentSrc
+                                                })
+                                                // Eğer daha önce failed olarak işaretlenmişse, kaldır
+                                                if (failedImages.has(item.id)) {
+                                                  setFailedImages(prev => {
+                                                    const newSet = new Set(prev)
+                                                    newSet.delete(item.id)
+                                                    return newSet
+                                                  })
+                                                }
+                                              } else {
+                                                console.warn(`⚠️ Görsel yüklendi ama boyut 0: ${item.name}`)
+                                                // Boyut 0 ise, fallback'e geç
+                                                setFailedImages(prev => {
+                                                  const newSet = new Set(prev)
+                                                  newSet.add(item.id)
+                                                  return newSet
+                                                })
+                                              }
+                                            }
+                                          }}
+                                        />
+                                      )
+                                    })()}
                               </div>
                             </div>
 
@@ -844,16 +1167,68 @@ export default function Menu() {
                 <div className="space-y-4">
                   {categories && categories.length > 0 ? categories.map((category) => {
                     const Icon = iconMap[category.id] || IceCreamBowl
-                    const categoryImage = category.image || categoryImageMap[category.id] || tatliImage
                     const isSelected = selectedCategory?.id === category.id
                     
-                    // Gradient overlay renkleri
-                    const categoryIdStr = String(category.id || '')
-                    const gradientOverlay = categoryIdStr === 'tatlilar' || categoryIdStr.includes('tatli')
-                      ? 'from-primary-600/80 via-primary-500/40 to-transparent'
-                      : categoryIdStr === 'yemekler' || categoryIdStr.includes('yemek')
-                      ? 'from-orange-600/80 via-orange-500/40 to-transparent'
-                      : 'from-emerald-600/80 via-emerald-500/40 to-transparent'
+                    // Kategori ismine göre görsel seç
+                    const categoryNameLowerCase = (category.name || '').toLowerCase().trim()
+                    const originalName = category.name || ''
+                    
+                    // İçecek kontrolü - daha geniş kontrol
+                    const hasIcecek = categoryNameLowerCase.includes('içecek') || 
+                                     categoryNameLowerCase.includes('icecek') || 
+                                     categoryNameLowerCase.includes('içeçek') ||
+                                     originalName.includes('İçecek') || 
+                                     originalName.includes('Icecek') ||
+                                     originalName.includes('İÇECEK') || 
+                                     originalName.includes('ICECEK')
+                    
+                    const hasSicak = categoryNameLowerCase.includes('sıcak') || 
+                                    categoryNameLowerCase.includes('sicak') ||
+                                    originalName.includes('Sıcak') || 
+                                    originalName.includes('SICAK')
+                    
+                    const hasSoguk = categoryNameLowerCase.includes('soğuk') || 
+                                   categoryNameLowerCase.includes('soguk') ||
+                                   originalName.includes('Soğuk') || 
+                                   originalName.includes('SOĞUK')
+                    
+                    // Gradient ve Border Color Logic - ÖNCE SARI KONTROL ET
+                    const isYellowCategory = (hasIcecek && hasSicak) || (hasIcecek && hasSoguk)
+                    
+                    const isBlueCategory = 
+                      categoryNameLowerCase.includes('frozen') || 
+                      categoryNameLowerCase.includes('milkshake')
+                    
+                    // Pembe kategori kontrolü - içecek olmayan kategoriler
+                    const isPinkCategory = !isYellowCategory && (
+                      categoryNameLowerCase.includes('makara') ||
+                      categoryNameLowerCase.includes('fransız') || categoryNameLowerCase.includes('fransiz') ||
+                      categoryNameLowerCase.includes('kruvasan') ||
+                      categoryNameLowerCase.includes('waffle') ||
+                      (categoryNameLowerCase.includes('sütlü') || categoryNameLowerCase.includes('sutlu') || 
+                       categoryNameLowerCase.includes('pasta')) ||
+                      categoryNameLowerCase.includes('ekstra') || 
+                      categoryNameLowerCase.includes('çikolata') || categoryNameLowerCase.includes('cikolata')
+                    )
+                    
+                    // Gradient overlay renkleri - öncelik sırası: Sarı > Mavi > Pembe
+                    let gradientOverlay = 'from-primary-600/80 via-primary-500/40 to-transparent'
+                    let borderColor = 'border-primary-500/50'
+                    
+                    if (isYellowCategory) {
+                      gradientOverlay = 'from-yellow-500/80 via-yellow-400/50 to-transparent'
+                      borderColor = 'border-yellow-500/50'
+                    } else if (isBlueCategory) {
+                      gradientOverlay = 'from-blue-500/80 via-blue-400/50 to-transparent'
+                      borderColor = 'border-blue-500/50'
+                    } else if (isPinkCategory) {
+                      gradientOverlay = 'from-pink-500/80 via-pink-400/50 to-transparent'
+                      borderColor = 'border-pink-500/50'
+                    }
+                    
+                    // Arkaplan görseli seçimi
+                    const customImage = getCategoryBackgroundImage(category.name)
+                    const categoryImage = customImage || category.image || categoryImageMap[category.id] || tatliImage
                     
                     return (
                       <motion.button
@@ -861,14 +1236,16 @@ export default function Menu() {
                         onClick={() => handleCategorySelect(category)}
                         whileHover={{ scale: 1.02, y: -4 }}
                         whileTap={{ scale: 0.98 }}
-                        className="relative w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-transparent transition-all duration-300 h-32 cursor-pointer"
+                        className={`relative w-full rounded-2xl overflow-hidden shadow-2xl border-2 ${borderColor} transition-all duration-300 h-32 cursor-pointer`}
                       >
                         {/* Background Image */}
-                        <div className="absolute inset-0 pointer-events-none">
-                          <img
+                        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                          <motion.img
                             src={categoryImage}
                             alt={category.name}
                             className="w-full h-full object-cover"
+                            whileHover={{ scale: 1.1 }}
+                            transition={{ duration: 0.5 }}
                           />
                         </div>
                         
