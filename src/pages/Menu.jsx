@@ -17,6 +17,7 @@ export default function Menu() {
   const [loadingProducts, setLoadingProducts] = useState(false)
   const [selectedImage, setSelectedImage] = useState({ url: null, name: null })
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [loadedImages, setLoadedImages] = useState(new Set()) // Yüklenen görselleri takip et
   const [yemekModalOpen, setYemekModalOpen] = useState(false)
   const [milkshakeVarietiesOpen, setMilkshakeVarietiesOpen] = useState(false)
   const [frozenVarietiesOpen, setFrozenVarietiesOpen] = useState(false)
@@ -385,6 +386,16 @@ export default function Menu() {
   const handleCategorySelect = (category) => {
     setDrawerOpen(false)
     setSelectedCategory(category)
+  }
+
+  // Görsel URL'sini direkt döndür - SSL hatası olsa bile göster
+  const getSecureImageUrl = (imageUrl) => {
+    if (!imageUrl) {
+      return `https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=400&h=400&fit=crop&q=80`
+    }
+    
+    // Direkt URL'i döndür - SSL hatası olsa bile tarayıcı göstermeye çalışacak
+    return imageUrl
   }
 
 
@@ -786,7 +797,7 @@ export default function Menu() {
                             <div 
                               className="w-32 h-32 md:w-40 md:h-40 flex-shrink-0 cursor-pointer"
                               onClick={() => {
-                                const imageUrl = item.image || makaraLogo
+                                const imageUrl = getSecureImageUrl(item.image) || makaraLogo
                                 setSelectedImage({
                                   url: imageUrl,
                                   name: item.name
@@ -795,12 +806,58 @@ export default function Menu() {
                             >
                               <div className="w-full h-full rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow bg-gray-100">
                                 <img
-                                  src={item.image || makaraLogo}
+                                  key={`${item.id}-${item.image || 'no-image'}`}
+                                  src={getSecureImageUrl(item.image) || makaraLogo}
                                   alt={item.name}
                                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                                   loading="lazy"
                                   onError={(e) => {
-                                    e.currentTarget.src = makaraLogo
+                                    // onError tetiklendi ama görsel gerçekten yüklenememiş mi kontrol et
+                                    const img = e.currentTarget
+                                    const imageKey = `${item.id}-${item.image}`
+                                    
+                                    // Eğer görsel zaten yüklenmişse (loadedImages set'inde varsa), hiçbir şey yapma
+                                    if (loadedImages.has(imageKey)) {
+                                      console.log(`✅ Görsel zaten yüklenmiş, onError görmezden geliniyor: ${item.name}`)
+                                      return
+                                    }
+                                    
+                                    // Görselin gerçekten yüklenip yüklenmediğini kontrol et
+                                    if (img.complete && img.naturalWidth > 0 && img.naturalHeight > 0) {
+                                      // Görsel aslında yüklü, SSL hatası olsa bile göster
+                                      console.log(`✅ Görsel yüklü (SSL hatası olabilir ama görsel görünüyor): ${item.name}`)
+                                      setLoadedImages(prev => new Set(prev).add(imageKey))
+                                      return
+                                    }
+                                    
+                                    // Gerçekten yüklenememiş, biraz bekle ve tekrar kontrol et
+                                    setTimeout(() => {
+                                      // Tekrar kontrol et - belki görsel yüklenmiştir
+                                      if (img.naturalWidth > 0 && img.naturalHeight > 0 || loadedImages.has(imageKey)) {
+                                        console.log(`✅ Görsel yüklendi (geç yüklendi): ${item.name}`)
+                                        setLoadedImages(prev => new Set(prev).add(imageKey))
+                                        return
+                                      }
+                                      
+                                      // Hala yüklenmemiş, fallback göster
+                                      console.warn(`⚠️ Görsel yüklenemedi, fallback gösteriliyor: ${item.name}`)
+                                      img.src = makaraLogo
+                                    }, 2000) // 2 saniye bekle
+                                  }}
+                                  onLoad={(e) => {
+                                    if (item.image) {
+                                      const img = e.currentTarget
+                                      const imageKey = `${item.id}-${item.image}`
+                                      
+                                      // Görseli yüklenenler listesine ekle
+                                      setLoadedImages(prev => new Set(prev).add(imageKey))
+                                      
+                                      console.log(`✅ Görsel başarıyla yüklendi: ${item.name}`, {
+                                        url: item.image,
+                                        width: img.naturalWidth,
+                                        height: img.naturalHeight
+                                      })
+                                    }
                                   }}
                                 />
                               </div>
