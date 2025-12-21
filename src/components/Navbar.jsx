@@ -51,7 +51,7 @@ export default function Navbar() {
                 className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border border-gray-200 group-hover:border-primary-400 transition-colors"
               />
             </motion.div>
-            <span className="text-2xl md:text-3xl font-display font-black tracking-wider text-primary-600 group-hover:text-primary-700 transition-colors">
+            <span className="text-2xl md:text-3xl font-display font-black tracking-wider text-pink-600 group-hover:text-rose-600 transition-colors">
               MAKARA
             </span>
           </Link>

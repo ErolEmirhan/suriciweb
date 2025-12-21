@@ -1,0 +1,965 @@
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { db } from '../config/firebase'
+import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+
+// Assets'ten görselleri import et
+import makara25 from '../assets/1 (25).webp'
+import makara29 from '../assets/1 (29).webp'
+import makara24 from '../assets/1 (24).webp'
+import makara27 from '../assets/1 (27).webp'
+import frambuaz20 from '../assets/1 (20).webp'
+import kahveCekirdegi21 from '../assets/1 (21).webp'
+import yerFistigi15 from '../assets/1 (15).webp'
+import limon19 from '../assets/1 (19).webp'
+import mango17 from '../assets/1 (17).webp'
+import cilek18 from '../assets/1 (18).webp'
+import yabanMersini22 from '../assets/1 (22).webp'
+import kruvasan26 from '../assets/1 (26).webp'
+import cilekliMagnolya6 from '../assets/1 (6).webp'
+import snickers11 from '../assets/1 (11).webp'
+import alacatiMuhallebisi4 from '../assets/1 (4).webp'
+import limonluCheesecake16 from '../assets/1 (16).webp'
+import fransizProfiterol9 from '../assets/1 (9).webp'
+import sanSebastian13 from '../assets/1 (13).webp'
+import incirliMuhallebi3 from '../assets/1 (3).webp'
+import incirliMuhallebi2 from '../assets/1 (2).webp'
+import makaraWebp from '../assets/makara.webp'
+
+export default function MenuNew() {
+  const [categories, setCategories] = useState([])
+  const [products, setProducts] = useState({})
+  const [productImages, setProductImages] = useState({}) // Ürün görselleri ayrı state'te
+  const [expandedCategories, setExpandedCategories] = useState(new Set())
+  const [loading, setLoading] = useState(true)
+  const [showSplash, setShowSplash] = useState(true) // Splash screen state
+  const [selectedProduct, setSelectedProduct] = useState(null)
+  const [selectedProductCategory, setSelectedProductCategory] = useState(null)
+  const [imagesCache, setImagesCache] = useState(null) // Tüm görselleri cache'le
+
+  // Kategorileri Firebase'den çek veya LocalStorage'dan oku
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        // Önce LocalStorage'dan kontrol et
+        const cachedCategories = localStorage.getItem('makara_categories')
+        const cacheTimestamp = localStorage.getItem('makara_categories_timestamp')
+        const cacheExpiry = 30 * 24 * 60 * 60 * 1000 // 30 gün
+        
+        if (cachedCategories && cacheTimestamp) {
+          const now = Date.now()
+          const cacheTime = parseInt(cacheTimestamp)
+          
+          // Cache hala geçerliyse (24 saat içindeyse)
+          if (now - cacheTime < cacheExpiry) {
+            const categoriesData = JSON.parse(cachedCategories)
+            setCategories(categoriesData)
+            setLoading(false)
+            return
+          }
+        }
+        
+        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
+        const categoriesRef = collection(db, 'categories')
+        let categoriesSnapshot
+        
+        // Tüm kategorileri çek (orderBy olmadan)
+        categoriesSnapshot = await getDocs(categoriesRef)
+        
+        const categoriesData = categoriesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        
+        // Özel sıralama: Kullanıcının belirttiği sıraya göre
+        const categoryOrder = [
+          'MAKARALAR',
+          'FRANSIZ PASTALARI',
+          'KRUVASANLAR',
+          'SÜTLÜ TATLILAR VE PASTALAR',
+          'WAFFLE',
+          'SICAK İÇECEKLER',
+          'SOĞUK İÇECEKLER',
+          'FROZENLER',
+          'MİLKSHAKELER'
+        ]
+        
+        categoriesData.sort((a, b) => {
+          const aName = (a.name || '').toUpperCase().trim()
+          const bName = (b.name || '').toUpperCase().trim()
+          
+          const aIndex = categoryOrder.findIndex(order => 
+            aName.includes(order) || order.includes(aName)
+          )
+          const bIndex = categoryOrder.findIndex(order => 
+            bName.includes(order) || order.includes(bName)
+          )
+          
+          // Eğer her ikisi de listede varsa, sıraya göre sırala
+          if (aIndex !== -1 && bIndex !== -1) {
+            return aIndex - bIndex
+          }
+          
+          // Eğer sadece biri listede varsa, o önce gelsin
+          if (aIndex !== -1) return -1
+          if (bIndex !== -1) return 1
+          
+          // İkisi de listede yoksa, order_index veya order'a göre sırala
+          const aOrder = a.order_index ?? a.order ?? 999
+          const bOrder = b.order_index ?? b.order ?? 999
+          if (aOrder !== bOrder) return aOrder - bOrder
+          
+          // Son olarak alfabetik sırala
+          return (a.name || '').localeCompare(b.name || '', 'tr')
+        })
+        
+        // LocalStorage'a kaydet
+        localStorage.setItem('makara_categories', JSON.stringify(categoriesData))
+        localStorage.setItem('makara_categories_timestamp', Date.now().toString())
+        
+        setCategories(categoriesData)
+        setLoading(false)
+      } catch (error) {
+        console.error('Kategoriler yüklenirken hata:', error)
+        setLoading(false)
+      }
+    }
+
+    fetchCategories()
+  }, [])
+
+  // Tüm görselleri tek seferde çek veya LocalStorage'dan oku (Firebase maliyet optimizasyonu)
+  useEffect(() => {
+    const fetchAllImages = async () => {
+      if (imagesCache) return // Zaten cache'lenmiş
+      
+      try {
+        // Önce LocalStorage'dan kontrol et
+        const cachedImages = localStorage.getItem('makara_images')
+        const cacheTimestamp = localStorage.getItem('makara_images_timestamp')
+        const cacheExpiry = 30 * 24 * 60 * 60 * 1000 // 30 gün
+        
+        if (cachedImages && cacheTimestamp) {
+          const now = Date.now()
+          const cacheTime = parseInt(cacheTimestamp)
+          
+          // Cache hala geçerliyse (24 saat içindeyse)
+          if (now - cacheTime < cacheExpiry) {
+            const imagesMap = JSON.parse(cachedImages)
+            setImagesCache(imagesMap)
+            return
+          }
+        }
+        
+        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
+        const imagesRef = collection(db, 'images')
+        const imagesSnapshot = await getDocs(imagesRef)
+        const imagesMap = {}
+        
+        imagesSnapshot.docs.forEach(doc => {
+          const imgData = doc.data()
+          let imageUrl = imgData.url || imgData.image || imgData.imageUrl
+          if (!imageUrl) return
+          
+          // Unsplash URL'lerini filtrele - makaraWebp ile değiştir
+          if (typeof imageUrl === 'string' && imageUrl.includes('unsplash.com')) {
+            imageUrl = makaraWebp
+          }
+          
+          // product_id ile indexle (string ve sayısal)
+          const productId = imgData.product_id
+          if (productId !== undefined && productId !== null) {
+            const productIdStr = String(productId)
+            const productIdNum = Number(productId)
+            if (!imagesMap[productIdStr]) imagesMap[productIdStr] = imageUrl
+            if (!isNaN(productIdNum) && !imagesMap[productIdNum]) imagesMap[productIdNum] = imageUrl
+          }
+          
+          // product_name ile indexle (fallback)
+          const productName = (imgData.product_name || imgData.name || '').toLowerCase().trim()
+          if (productName) {
+            if (!imagesMap[productName]) imagesMap[productName] = imageUrl
+          }
+        })
+        
+        // LocalStorage'a kaydet
+        localStorage.setItem('makara_images', JSON.stringify(imagesMap))
+        localStorage.setItem('makara_images_timestamp', Date.now().toString())
+        
+        setImagesCache(imagesMap)
+      } catch (error) {
+        console.error('Görseller yüklenirken hata:', error)
+      }
+    }
+    
+    fetchAllImages()
+  }, [])
+
+  // Her kategori için ürünleri çek veya LocalStorage'dan oku (görseller olmadan - hızlı yükleme)
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (categories.length === 0) return
+
+      try {
+        // Önce LocalStorage'dan kontrol et
+        const cachedProducts = localStorage.getItem('makara_products')
+        const cacheTimestamp = localStorage.getItem('makara_products_timestamp')
+        const cacheExpiry = 30 * 24 * 60 * 60 * 1000 // 30 gün
+        
+        if (cachedProducts && cacheTimestamp) {
+          const now = Date.now()
+          const cacheTime = parseInt(cacheTimestamp)
+          
+          // Cache hala geçerliyse (24 saat içindeyse)
+          if (now - cacheTime < cacheExpiry) {
+            const productsData = JSON.parse(cachedProducts)
+            setProducts(productsData)
+            return
+          }
+        }
+        
+        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
+        const productsRef = collection(db, 'products')
+        const productsData = {}
+
+        for (const category of categories) {
+          const categoryId = category.id
+          const categoryIdStr = String(categoryId)
+          const categoryIdNum = Number(categoryId)
+
+          // category_id ile sorgula
+          let productsSnapshot
+          try {
+            let q = query(productsRef, where('category_id', '==', categoryIdStr))
+            productsSnapshot = await getDocs(q)
+          } catch (error) {
+            productsSnapshot = { docs: [], empty: true }
+          }
+
+          // Eğer bulunamazsa sayısal olarak dene
+          if (productsSnapshot.empty && !isNaN(categoryIdNum)) {
+            try {
+              let q = query(productsRef, where('category_id', '==', categoryIdNum))
+              productsSnapshot = await getDocs(q)
+            } catch (error) {
+              // Hata durumunda devam et
+            }
+          }
+
+          // Ürünleri al (görseller olmadan - hızlı yükleme)
+          const categoryProducts = productsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+          
+          // order_index veya order alanına göre sırala
+          categoryProducts.sort((a, b) => {
+            const aOrder = a.order_index ?? a.order ?? 999
+            const bOrder = b.order_index ?? b.order ?? 999
+            if (aOrder !== bOrder) return aOrder - bOrder
+            return (a.name || '').localeCompare(b.name || '', 'tr')
+          })
+
+          productsData[categoryId] = categoryProducts
+        }
+
+        // LocalStorage'a kaydet
+        localStorage.setItem('makara_products', JSON.stringify(productsData))
+        localStorage.setItem('makara_products_timestamp', Date.now().toString())
+
+        setProducts(productsData)
+      } catch (error) {
+        console.error('Ürünler yüklenirken hata:', error)
+      }
+    }
+
+    fetchProducts()
+  }, [categories])
+
+  // Görselleri arka planda eşleştir (ürünler yüklendikten sonra)
+  useEffect(() => {
+    if (!imagesCache || Object.keys(products).length === 0) return
+
+    const matchedImages = {}
+    
+    Object.entries(products).forEach(([categoryId, categoryProducts]) => {
+      categoryProducts.forEach(product => {
+        const productId = product.id
+        const productIdStr = String(productId)
+        const productIdNum = Number(productId)
+        const productName = (product.name || '').toLowerCase().trim()
+        
+        // product_id ile eşleştir (string)
+        let imageUrl = imagesCache[productIdStr]
+        
+        // product_id ile eşleştir (sayısal)
+        if (!imageUrl && !isNaN(productIdNum)) {
+          imageUrl = imagesCache[productIdNum]
+        }
+        
+        // product_name ile eşleştir (fallback)
+        if (!imageUrl && productName) {
+          imageUrl = imagesCache[productName]
+        }
+        
+        if (imageUrl) {
+          // Unsplash URL'lerini filtrele
+          if (typeof imageUrl === 'string' && imageUrl.includes('unsplash.com')) {
+            matchedImages[productId] = makaraWebp
+          } else {
+            matchedImages[productId] = imageUrl
+          }
+        }
+      })
+    })
+    
+    setProductImages(matchedImages)
+  }, [imagesCache, products])
+
+  // Kategoriyi aç/kapa
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId)
+      } else {
+        newSet.add(categoryId)
+      }
+      return newSet
+    })
+  }
+
+  // Ürün görseli URL'sini al
+  const getProductImage = (product, categoryName) => {
+    const productName = (product.name || '').toLowerCase().trim()
+    const categoryNameLower = (categoryName || '').toLowerCase().trim()
+    
+    // Assets'ten görselleri kontrol et (öncelikli)
+    // MAKARALAR KATEGORİSİ
+    if (categoryNameLower.includes('makara')) {
+      if (productName.includes('sade tarçınlı') || productName.includes('sade tarçın')) {
+        return makara25
+      }
+      if (productName.includes('tarçınlı çikolatalı') || productName.includes('tarçın çikolata')) {
+        return makara25
+      }
+      if (productName.includes('antep fıstıklı') || productName.includes('antep fıstık')) {
+        return makara29
+      }
+      if (productName.includes('lotuslu') || productName.includes('lotus')) {
+        return makara25
+      }
+      if (productName.includes('oreolu') || productName.includes('oreo')) {
+        return makara24
+      }
+      if (productName.includes('çilekli') || productName.includes('çilek')) {
+        return makara27
+      }
+    }
+    
+    // FRANSIZ PASTALARI KATEGORİSİ
+    if (categoryNameLower.includes('fransız') || categoryNameLower.includes('fransiz')) {
+      if (productName.includes('frambuaz')) {
+        return frambuaz20
+      }
+      if (productName.includes('kahve çekirdeği') || productName.includes('kahve cekirdegi')) {
+        return kahveCekirdegi21
+      }
+      if (productName.includes('yer fıstığı') || productName.includes('yer fistigi')) {
+        return yerFistigi15
+      }
+      if (productName.includes('limon')) {
+        return limon19
+      }
+      if (productName.includes('mango')) {
+        return mango17
+      }
+      if (productName.includes('çilek')) {
+        return cilek18
+      }
+      if (productName.includes('yaban mersini') || productName.includes('yabanmersini')) {
+        return yabanMersini22
+      }
+    }
+    
+    // KRUVASANLAR KATEGORİSİ
+    if (categoryNameLower.includes('kruvasan') || categoryNameLower.includes('kruvasan')) {
+      return kruvasan26
+    }
+    
+    // SÜTLÜ TATLILAR VE PASTALAR KATEGORİSİ
+    if (categoryNameLower.includes('sütlü') || categoryNameLower.includes('sutlu') || categoryNameLower.includes('tatlı') || categoryNameLower.includes('tatli')) {
+      if (productName.includes('çilekli magnolya') || productName.includes('cilekli magnolya')) {
+        return cilekliMagnolya6
+      }
+      if (productName.includes('snickers')) {
+        return snickers11
+      }
+      if (productName.includes('alaçatı muhallebisi') || productName.includes('alacati muhallebisi')) {
+        return alacatiMuhallebisi4
+      }
+      if (productName.includes('limonlu cheesecake') || productName.includes('limon cheesecake')) {
+        return limonluCheesecake16
+      }
+      if (productName.includes('fransız profiterol') || productName.includes('fransiz profiterol')) {
+        return fransizProfiterol9
+      }
+      if (productName.includes('san sebastian') || productName.includes('san sebastian')) {
+        return sanSebastian13
+      }
+      if (productName.includes('incirli muhallebi') || productName.includes('incirli')) {
+        return incirliMuhallebi2
+      }
+    }
+    
+    // Firebase'den cache'lenmiş görseli kontrol et
+    if (productImages[product.id]) {
+      const cachedImage = productImages[product.id]
+      // Unsplash URL'lerini filtrele
+      if (typeof cachedImage === 'string' && cachedImage.includes('unsplash.com')) {
+        return makaraWebp
+      }
+      return cachedImage
+    }
+    
+    // Ürünün kendi image alanını kontrol et
+    if (product.image) {
+      // Unsplash URL'lerini filtrele
+      if (typeof product.image === 'string' && product.image.includes('unsplash.com')) {
+        return makaraWebp
+      }
+      return product.image
+    }
+    if (product.imageUrl) {
+      // Unsplash URL'lerini filtrele
+      if (typeof product.imageUrl === 'string' && product.imageUrl.includes('unsplash.com')) {
+        return makaraWebp
+      }
+      return product.imageUrl
+    }
+    
+    // Fallback görsel - makara.webp
+    return makaraWebp
+  }
+
+  // Kategori görseli URL'sini al - Kategori içindeki ürünlerden birinin görseli
+  const getCategoryImage = (category) => {
+    // Önce kategori içindeki ürünlerden birinin görselini al
+    const categoryProducts = products[category.id] || []
+    if (categoryProducts.length > 0) {
+      // İlk ürünün görselini al
+      const firstProduct = categoryProducts[0]
+      const productImage = getProductImage(firstProduct, category.name)
+      // Ürün görseli varsa ve makaraWebp değilse kullan
+      if (productImage && productImage !== makaraWebp && typeof productImage === 'string' && productImage.trim() !== '') {
+        return productImage
+      }
+    }
+    
+    // Eğer ürün görseli yoksa kategori görselini kontrol et
+    if (category.image && typeof category.image === 'string' && category.image.trim() !== '') {
+      return category.image
+    }
+    if (category.imageUrl && typeof category.imageUrl === 'string' && category.imageUrl.trim() !== '') {
+      return category.imageUrl
+    }
+    
+    // Fallback görsel - makara.webp (kategori görseli boşsa)
+    return makaraWebp
+  }
+
+  // Splash screen - 2 saniye göster
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => {
+        setShowSplash(false)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [loading])
+
+  if (loading || showSplash) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 z-50 overflow-hidden">
+        {/* Havadan yağan tatlı sembolleri */}
+        {[...Array(15)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ 
+              y: -100, 
+              opacity: 0,
+              rotate: 0
+            }}
+            animate={{ 
+              y: '100vh',
+              opacity: [0, 1, 1, 0],
+              rotate: 360
+            }}
+            transition={{
+              duration: 3 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+              ease: "linear"
+            }}
+            className="absolute text-4xl sm:text-5xl md:text-6xl pointer-events-none"
+            style={{
+              left: `${(i * 6.67) + Math.random() * 5}%`
+            }}
+          >
+            🍰
+          </motion.div>
+        ))}
+        
+        {/* Ortada MENÜ yazısı */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5, y: 50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-center relative z-10"
+        >
+          <motion.h1
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-pink-600 mb-4 tracking-tight"
+            style={{
+              textShadow: '0 4px 20px rgba(236, 72, 153, 0.3)'
+            }}
+          >
+            MENÜ
+          </motion.h1>
+          
+          {loading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex items-center justify-center gap-2 mt-4"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-6 h-6 border-3 border-pink-400 border-t-transparent rounded-full"
+              />
+              <p className="text-lg font-semibold text-gray-600">Yükleniyor...</p>
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
+    )
+  }
+
+  // Kategoriler yoksa mesaj göster
+  if (!loading && categories.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Kategori bulunamadı</h2>
+          <p className="text-gray-600">Firebase'den kategori verileri yüklenemedi.</p>
+          <p className="text-sm text-gray-500 mt-2">Lütfen konsolu kontrol edin.</p>
+        </motion.div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-3 px-2 sm:py-4 sm:px-3 lg:py-6 lg:px-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Başlık - Kompakt */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-3 sm:mb-4"
+        >
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-1 flex items-center justify-center gap-2">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
+            Menümüz
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
+          </h1>
+        </motion.div>
+
+        {/* Kategori Kartları - Kompakt Grid Layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 -mt-2 sm:-mt-3">
+          {categories.length === 0 && !loading && (
+            <div className="col-span-full text-center py-4">
+              <p className="text-gray-600 text-sm">Henüz kategori bulunmamaktadır.</p>
+            </div>
+          )}
+          {categories.map((category, index) => {
+            const isExpanded = expandedCategories.has(category.id)
+            const categoryProducts = products[category.id] || []
+            const categoryNameUpper = (category.name || '').toUpperCase().trim()
+            const isHotDrinks = categoryNameUpper.includes('SICAK İÇECEKLER') || categoryNameUpper.includes('SICAK ICEECEKLER')
+            const isMakara = categoryNameUpper.includes('MAKARALAR') || categoryNameUpper.includes('MAKARA')
+
+            return (
+              <>
+                {/* TATLILAR Bölüm Ayracı - MAKARALAR'dan önce */}
+                {isMakara && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="col-span-full mt-4 sm:mt-6 mb-2 sm:mb-3"
+                  >
+                    <div className="relative flex items-center justify-center gap-6 sm:gap-8">
+                      {/* Sol Çizgi - Kalın ve Gradient */}
+                      <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-pink-400/80 to-pink-500 shadow-lg"></div>
+                      
+                      {/* Orta Yazı - Çok Belirgin ve Modern */}
+                      <div className="relative flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4">
+                        {/* Arka Plan Glow Efekti */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-pink-100/50 via-rose-100/60 to-pink-100/50 rounded-full blur-xl"></div>
+                        
+                        {/* Yazı Container - Backdrop Blur */}
+                        <div className="relative bg-white/40 backdrop-blur-md rounded-full px-6 sm:px-8 py-2 sm:py-3 border-2 border-pink-300/60 shadow-2xl ring-2 ring-pink-200/40">
+                          <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-pink-600 tracking-widest uppercase drop-shadow-[0_2px_8px_rgba(236,72,153,0.4)]">
+                            TATLILAR
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Sağ Çizgi - Kalın ve Gradient */}
+                      <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-l from-transparent via-pink-400/80 to-pink-500 shadow-lg"></div>
+                    </div>
+                  </motion.div>
+                )}
+                
+                {/* İÇECEKLER Bölüm Ayracı - Modern ve Profesyonel */}
+                {isHotDrinks && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="col-span-full mb-6 sm:mb-8"
+                  >
+                    <div className="relative flex items-center justify-center gap-6 sm:gap-8">
+                      {/* Sol Çizgi - Kalın ve Gradient */}
+                      <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-pink-400/80 to-pink-500 shadow-lg"></div>
+                      
+                      {/* Orta Yazı - Çok Belirgin ve Modern */}
+                      <div className="relative flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4">
+                        {/* Arka Plan Glow Efekti */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-pink-100/50 via-rose-100/60 to-pink-100/50 rounded-full blur-xl"></div>
+                        
+                        {/* Yazı Container - Backdrop Blur */}
+                        <div className="relative bg-white/40 backdrop-blur-md rounded-full px-6 sm:px-8 py-2 sm:py-3 border-2 border-pink-300/60 shadow-2xl ring-2 ring-pink-200/40">
+                          <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-pink-600 tracking-widest uppercase drop-shadow-[0_2px_8px_rgba(236,72,153,0.4)]">
+                            İÇECEKLER
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Sağ Çizgi - Kalın ve Gradient */}
+                      <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-l from-transparent via-pink-400/80 to-pink-500 shadow-lg"></div>
+                    </div>
+                  </motion.div>
+                )}
+              <motion.div
+                key={category.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03 }}
+                className="bg-white rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden active:scale-[0.98] transition-all duration-500 border-2 border-gray-100/80 hover:border-pink-200/60 group/card backdrop-blur-sm"
+              >
+                {/* Kategori Başlığı - Kompakt */}
+                <div
+                  onClick={() => toggleCategory(category.id)}
+                  className="relative cursor-pointer group touch-manipulation"
+                >
+                  {/* Kategori Arka Plan Görseli - Ultra Profesyonel */}
+                  <div className="relative h-36 sm:h-40 md:h-44 overflow-hidden rounded-t-3xl">
+                    {/* Görsel */}
+                    <img
+                      src={getCategoryImage(category)}
+                      alt={category.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-115 group-active:scale-105"
+                    />
+                    {/* Düz Pembe Overlay - Navbar'daki Pembe Tonu */}
+                    <div className="absolute inset-0 bg-pink-600/70" />
+                    
+                    {/* Shine Efekti */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 transform translate-x-[-200%] group-hover/card:translate-x-[200%] transition-transform duration-1000" />
+                    
+                    {/* Kategori İçeriği - Ultra Modern ve Profesyonel */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-5 sm:p-6">
+                      {/* Kategori İsmi - Radiuslu Siyah Overlay ile */}
+                      <div className="text-center mb-4 relative z-10">
+                        <div className="relative inline-block">
+                          {/* Radiuslu Siyah Overlay Arka Plan - Daha Az Yer Kaplayan ve Daha Az Opak */}
+                          <div className="absolute inset-0 -inset-x-2 -inset-y-1 bg-black/25 backdrop-blur-sm rounded-full"></div>
+                          
+                          {/* Kategori İsmi */}
+                          <h2 className="relative text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight tracking-tight px-3 py-1.5">
+                            <span className="drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                              {category.name}
+                            </span>
+                          </h2>
+                        </div>
+                      </div>
+                      
+                      {/* Ürün Sayısı Badge - Daha Az Belirgin */}
+                      {categoryProducts.length > 0 && (
+                        <div className="flex items-center justify-center relative z-10">
+                          <span className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 shadow-lg">
+                            <span className="text-xs sm:text-sm font-semibold text-white/90 tracking-wide drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
+                              {categoryProducts.length} {categoryProducts.length === 1 ? 'ürün' : 'ürün'}
+                            </span>
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Aç/Kapa İkonu - Premium Buton */}
+                      <motion.div
+                        animate={{ rotate: isExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="absolute top-4 right-4 bg-white/35 backdrop-blur-lg rounded-full p-2.5 sm:p-3 hover:bg-white/50 active:bg-white/60 transition-all duration-300 flex-shrink-0 touch-manipulation shadow-2xl ring-3 ring-white/30 hover:ring-white/40 hover:scale-110"
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 text-white drop-shadow-lg" />
+                        )}
+                      </motion.div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ürünler Listesi - Kompakt Grid */}
+                <AnimatePresence>
+                  {isExpanded && categoryProducts.length > 0 && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-2 sm:p-3">
+                        {/* 6'dan fazla ürün varsa horizontal scroll, yoksa grid */}
+                        {categoryProducts.length > 6 ? (
+                          <div className="overflow-x-auto scrollbar-hide -mx-2 sm:-mx-3 px-2 sm:px-3 snap-x snap-mandatory">
+                            <div className="flex gap-2 pb-1" style={{ width: 'max-content' }}>
+                              {categoryProducts.map((product, productIndex) => (
+                                <motion.div
+                                  key={product.id}
+                                  initial={{ opacity: 0, scale: 0.95 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: productIndex * 0.02 }}
+                                  onClick={() => {
+                                    setSelectedProduct(product)
+                                    setSelectedProductCategory(category.name)
+                                  }}
+                                  className="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-300 cursor-pointer group border border-gray-100/80 hover:border-pink-200/60 active:border-pink-300/80 touch-manipulation backdrop-blur-sm flex-shrink-0 snap-start w-36 sm:w-40 md:w-44"
+                                >
+                              {/* Ürün Görseli - Dairesel Profesyonel */}
+                              <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 mx-auto rounded-full overflow-hidden mb-2.5 bg-gradient-to-br from-gray-50 to-gray-100/50 shadow-inner ring-1 ring-gray-200/60 group-hover:ring-pink-200/50 transition-all duration-300">
+                                <img
+                                  key={`product-img-${product.id}-${getProductImage(product, category.name)}`}
+                                  src={getProductImage(product, category.name)}
+                                  alt={product.name}
+                                  loading="lazy"
+                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 group-active:scale-100"
+                                  onError={(e) => {
+                                    if (e.target.src !== makaraWebp) {
+                                      e.target.src = makaraWebp
+                                    }
+                                  }}
+                                />
+                              </div>
+
+                              {/* Ürün Bilgileri - Profesyonel */}
+                              <div className="text-center space-y-2">
+                                <h3 className="text-xs sm:text-sm font-semibold text-gray-800 group-hover:text-rose-600 transition-colors duration-300 line-clamp-2 leading-tight tracking-tight">
+                                  {product.name}
+                                </h3>
+                                
+                                {/* Fiyat - Radiuslu Arka Plan */}
+                                <div className="mt-auto">
+                                  {product.price ? (
+                                    <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200/60 group-hover:border-rose-300/80 group-hover:from-rose-100 group-hover:to-pink-100 transition-all duration-300">
+                                      <span className="text-xs sm:text-sm font-bold text-rose-600 group-hover:text-rose-700">
+                                        {typeof product.price === 'number' 
+                                          ? `${product.price.toFixed(2)} ₺`
+                                          : product.price
+                                        }
+                                      </span>
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-gray-50 border border-gray-200/60">
+                                      <span className="text-[10px] sm:text-xs text-gray-400 font-medium">Fiyat yok</span>
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                            {categoryProducts.map((product, productIndex) => (
+                              <motion.div
+                                key={product.id}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: productIndex * 0.02 }}
+                                onClick={() => {
+                                  setSelectedProduct(product)
+                                  setSelectedProductCategory(category.name)
+                                }}
+                                className="bg-white rounded-2xl p-3 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-300 cursor-pointer group border border-gray-100/80 hover:border-pink-200/60 active:border-pink-300/80 touch-manipulation backdrop-blur-sm"
+                              >
+                                {/* Ürün Görseli - Dairesel Profesyonel */}
+                                <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 mx-auto rounded-full overflow-hidden mb-2.5 bg-gradient-to-br from-gray-50 to-gray-100/50 shadow-inner ring-1 ring-gray-200/60 group-hover:ring-pink-200/50 transition-all duration-300">
+                                  <img
+                                    key={`product-img-grid-${product.id}-${getProductImage(product, category.name)}`}
+                                    src={getProductImage(product, category.name)}
+                                    alt={product.name}
+                                    loading="lazy"
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 group-active:scale-100"
+                                    onError={(e) => {
+                                      if (e.target.src !== makaraWebp) {
+                                        e.target.src = makaraWebp
+                                      }
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Ürün Bilgileri - Profesyonel */}
+                                <div className="text-center space-y-2">
+                                  <h3 className="text-xs sm:text-sm font-semibold text-gray-800 group-hover:text-rose-600 transition-colors duration-300 line-clamp-2 leading-tight tracking-tight">
+                                    {product.name}
+                                  </h3>
+                                  
+                                  {/* Fiyat - Radiuslu Arka Plan */}
+                                  <div className="mt-auto">
+                                    {product.price ? (
+                                      <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200/60 group-hover:border-rose-300/80 group-hover:from-rose-100 group-hover:to-pink-100 transition-all duration-300">
+                                        <span className="text-xs sm:text-sm font-bold text-rose-600 group-hover:text-rose-700">
+                                          {typeof product.price === 'number' 
+                                            ? `${product.price.toFixed(2)} ₺`
+                                            : product.price
+                                          }
+                                        </span>
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-gray-50 border border-gray-200/60">
+                                        <span className="text-[10px] sm:text-xs text-gray-400 font-medium">Fiyat yok</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Ürün Yoksa Mesaj - Kompakt */}
+                {isExpanded && categoryProducts.length === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="p-3 text-center"
+                  >
+                    <p className="text-gray-500 text-xs sm:text-sm">Bu kategoride henüz ürün bulunmamaktadır.</p>
+                  </motion.div>
+                )}
+              </motion.div>
+              </>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Ürün Detay Modal - Kompakt */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-2"
+            onClick={() => {
+              setSelectedProduct(null)
+              setSelectedProductCategory(null)
+            }}
+          >
+            <motion.div
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-t-2xl sm:rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl touch-manipulation"
+            >
+              {/* Mobil: Üstten swipe için handle */}
+              <div className="sticky top-0 bg-white z-10 pt-2 pb-1">
+                <div className="flex justify-center sm:hidden mb-1">
+                  <div className="w-10 h-0.5 bg-gray-300 rounded-full"></div>
+                </div>
+                <div className="relative w-40 h-40 sm:w-48 sm:h-48 mx-auto rounded-full overflow-hidden mb-2">
+                  <img
+                    key={`modal-img-${selectedProduct.id}-${getProductImage(selectedProduct, selectedProductCategory)}`}
+                    src={getProductImage(selectedProduct, selectedProductCategory)}
+                    alt={selectedProduct.name}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      if (e.target.src !== makaraWebp) {
+                        e.target.src = makaraWebp
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      setSelectedProduct(null)
+                      setSelectedProductCategory(null)
+                    }}
+                    className="absolute top-1 right-1 bg-white/95 backdrop-blur-sm rounded-full p-1.5 active:bg-white transition-colors shadow-lg touch-manipulation"
+                  >
+                    <ChevronUp className="w-3 h-3 text-gray-700 rotate-45" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-4 sm:p-5">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2.5 tracking-tight leading-tight">
+                  {selectedProduct.name}
+                </h2>
+                {selectedProduct.description && (
+                  <p className="text-gray-600 text-sm sm:text-base mb-4 leading-relaxed">
+                    {selectedProduct.description}
+                  </p>
+                )}
+                {selectedProduct.price && (
+                  <div className="flex items-center gap-3 pt-3 border-t border-gray-200">
+                    <span className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200/60">
+                      <span className="text-lg sm:text-xl font-bold text-rose-600">
+                        {typeof selectedProduct.price === 'number' 
+                          ? `${selectedProduct.price.toFixed(2)} ₺`
+                          : selectedProduct.price
+                        }
+                      </span>
+                    </span>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+
