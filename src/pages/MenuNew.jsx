@@ -14,10 +14,22 @@ import kahveCekirdegi21 from '../assets/1 (21).webp'
 import yerFistigi15 from '../assets/1 (15).webp'
 import limon19 from '../assets/1 (19).webp'
 import mango17 from '../assets/1 (17).webp'
+import mangoJpeg from '../assets/mango.jpeg'
+import tiramisuJpeg from '../assets/tiramisu.jpeg'
+import antepJpeg from '../assets/antep.jpeg'
+import fistikcupJpeg from '../assets/fistikcup.jpeg'
+import keskulJpeg from '../assets/keskul.jpeg'
+import franJpeg from '../assets/fran.jpeg'
+import incirJpeg from '../assets/incir.jpeg'
+import lotusJpeg from '../assets/lotus.jpeg'
+import magnoJpg from '../assets/magno.jpg'
+import brestJpeg from '../assets/brest.jpeg'
+import cupprofitJpeg from '../assets/cupprofit.jpeg'
 import cilek18 from '../assets/1 (18).webp'
 import yabanMersini22 from '../assets/1 (22).webp'
 import kruvasan26 from '../assets/1 (26).webp'
 import cilekliMagnolya6 from '../assets/1 (6).webp'
+import frambuazliCup7 from '../assets/1 (7).webp'
 import snickers11 from '../assets/1 (11).webp'
 import alacatiMuhallebisi4 from '../assets/1 (4).webp'
 import limonluCheesecake16 from '../assets/1 (16).webp'
@@ -26,6 +38,18 @@ import sanSebastian13 from '../assets/1 (13).webp'
 import incirliMuhallebi3 from '../assets/1 (3).webp'
 import incirliMuhallebi2 from '../assets/1 (2).webp'
 import makaraWebp from '../assets/makara.webp'
+import bolJpg from '../assets/bol.jpg'
+import bogurtJpeg from '../assets/bogurt.jpeg'
+import findikJpeg from '../assets/fındık.jpeg'
+import seftaJpg from '../assets/sefta.jpg'
+import carkJpg from '../assets/cark.jpg'
+import yerJpg from '../assets/yer.jpg'
+import portaJpg from '../assets/porta.jpg'
+import bardakJpg from '../assets/bardak.jpg'
+import klasikJpg from '../assets/klasik.jpg'
+import kovaJpg from '../assets/kova.jpg'
+import ekstraJpeg from '../assets/ekstra.jpeg'
+import frozenJpg from '../assets/frozen.jpg'
 
 export default function MenuNew() {
   const [categories, setCategories] = useState([])
@@ -332,29 +356,75 @@ export default function MenuNew() {
 
   // Ürün görseli URL'sini al
   const getProductImage = (product, categoryName) => {
-    const productName = (product.name || '').toLowerCase().trim()
-    const categoryNameLower = (categoryName || '').toLowerCase().trim()
+    // Türkçe karakterleri normalize et (İ -> i, ı -> i, ş -> s, ç -> c, ğ -> g, ü -> u, ö -> o)
+    const normalizeTurkish = (str) => {
+      if (!str) return ''
+      // Türkçe locale ile küçük harfe çevir (İ -> i doğru çalışır)
+      let normalized = str.toLocaleLowerCase('tr-TR')
+      // Sonra diğer Türkçe karakterleri normalize et
+      return normalized
+        .replace(/ı/g, 'i')
+        .replace(/ş/g, 's')
+        .replace(/ç/g, 'c')
+        .replace(/ğ/g, 'g')
+        .replace(/ü/g, 'u')
+        .replace(/ö/g, 'o')
+        .trim()
+    }
+    
+    const productName = normalizeTurkish(product.name || '')
+    const categoryNameLower = normalizeTurkish(categoryName || '')
+    
+    // Debug: Makaralar kategorisindeki ürünler için
+    if (categoryNameLower.includes('makara')) {
+      if (productName.includes('antep') || productName.includes('cilek') || productName.includes('tarcin')) {
+        console.log('🔍 Makara Debug:', {
+          originalName: product.name,
+          normalizedName: productName,
+          categoryName: categoryName,
+          categoryNameLower: categoryNameLower,
+          productId: product.id
+        })
+      }
+    }
     
     // Assets'ten görselleri kontrol et (öncelikli)
     // MAKARALAR KATEGORİSİ
     if (categoryNameLower.includes('makara')) {
-      if (productName.includes('sade tarçınlı') || productName.includes('sade tarçın')) {
+      // Sade Tarçınlı
+      if (productName.includes('sade tarcinli') || productName.includes('sade tarcin') || 
+          productName.includes('sade tarçınlı') || productName.includes('sade tarçın')) {
         return makara25
       }
-      if (productName.includes('tarçınlı çikolatalı') || productName.includes('tarçın çikolata')) {
+      // Tarçınlı Çikolatalı
+      if (productName.includes('tarcinli cikolatali') || productName.includes('tarcin cikolata') || 
+          productName.includes('tarcinli cikolata') || productName.includes('tarçınlı çikolatalı') || 
+          productName.includes('tarçın çikolata') || productName.includes('tarçınlı çikolata')) {
         return makara25
       }
-      if (productName.includes('antep fıstıklı') || productName.includes('antep fıstık')) {
+      // Antep Fıstıklı
+      if (productName.includes('antep fistikli') || productName.includes('antep fistik') || 
+          productName.includes('antep fıstıklı') || productName.includes('antep fıstık')) {
         return makara29
       }
+      // Lotuslu
       if (productName.includes('lotuslu') || productName.includes('lotus')) {
         return makara25
       }
+      // Oreolu
       if (productName.includes('oreolu') || productName.includes('oreo')) {
         return makara24
       }
-      if (productName.includes('çilekli') || productName.includes('çilek')) {
+      // Çilekli
+      if (productName.includes('cilekli') || productName.includes('cilek') || 
+          productName.includes('çilekli') || productName.includes('çilek')) {
         return makara27
+      }
+      // Makara Cup Bol çikolatalı
+      if (productName.includes('cup') && (productName.includes('bol cikolatali') || 
+          productName.includes('bol çikolatalı') || productName.includes('bol cikolata') ||
+          productName.includes('bol çikolata'))) {
+        return bolJpg
       }
     }
     
@@ -366,20 +436,42 @@ export default function MenuNew() {
       if (productName.includes('kahve çekirdeği') || productName.includes('kahve cekirdegi')) {
         return kahveCekirdegi21
       }
-      if (productName.includes('yer fıstığı') || productName.includes('yer fistigi')) {
-        return yerFistigi15
-      }
       if (productName.includes('limon')) {
         return limon19
       }
       if (productName.includes('mango')) {
-        return mango17
+        return mangoJpeg
       }
-      if (productName.includes('çilek')) {
+      if (productName.includes('cilek') || productName.includes('çilek')) {
         return cilek18
       }
       if (productName.includes('yaban mersini') || productName.includes('yabanmersini')) {
         return yabanMersini22
+      }
+      if (productName.includes('antep fıstığı') || productName.includes('antep fistigi') || productName.includes('antep fıstık') || productName.includes('antep fistik')) {
+        return antepJpeg
+      }
+      if (productName.includes('badem')) {
+        return yerFistigi15
+      }
+      if (productName.includes('bogurtlen') || productName.includes('böğürtlen')) {
+        return bogurtJpeg
+      }
+      if (productName.includes('findik') || productName.includes('fındık')) {
+        return findikJpeg
+      }
+      if (productName.includes('seftali') || productName.includes('şeftali')) {
+        return seftaJpg
+      }
+      if (productName.includes('carkifelek') || productName.includes('çarkıfelek')) {
+        return carkJpg
+      }
+      if (productName.includes('yer fistigi') || productName.includes('yer fıstığı') || 
+          productName.includes('yer fistik') || productName.includes('yer fıstık')) {
+        return yerJpg
+      }
+      if (productName.includes('portakal')) {
+        return portaJpg
       }
     }
     
@@ -396,21 +488,74 @@ export default function MenuNew() {
       if (productName.includes('snickers')) {
         return snickers11
       }
-      if (productName.includes('alaçatı muhallebisi') || productName.includes('alacati muhallebisi')) {
+      if (productName.includes('alaçatı') || productName.includes('alacati')) {
         return alacatiMuhallebisi4
       }
       if (productName.includes('limonlu cheesecake') || productName.includes('limon cheesecake')) {
         return limonluCheesecake16
       }
       if (productName.includes('fransız profiterol') || productName.includes('fransiz profiterol')) {
-        return fransizProfiterol9
+        return franJpeg
       }
       if (productName.includes('san sebastian') || productName.includes('san sebastian')) {
         return sanSebastian13
       }
-      if (productName.includes('incirli muhallebi') || productName.includes('incirli')) {
-        return incirliMuhallebi2
+      if (productName.includes('incir')) {
+        return incirJpeg
       }
+      if (productName.includes('tiramisu')) {
+        return tiramisuJpeg
+      }
+      if (productName.includes('antep fıstıklı cup') || productName.includes('antep fistikli cup') || (productName.includes('cup') && productName.includes('antep'))) {
+        return fistikcupJpeg
+      }
+      if (productName.includes('keşkül') || productName.includes('keskul')) {
+        return keskulJpeg
+      }
+      if (productName.includes('lotus') && productName.includes('chesecake')) {
+        return lotusJpeg
+      }
+      if (productName.includes('lotus') && productName.includes('magnolia')) {
+        return magnoJpg
+      }
+      if (productName.includes('paris') && productName.includes('brest')) {
+        return brestJpeg
+      }
+      if (productName.includes('profiterol') && productName.includes('cup')) {
+        return cupprofitJpeg
+      }
+      if (productName.includes('frambuaz') && productName.includes('cup')) {
+        return frambuazliCup7
+      }
+      if (productName.includes('malaga')) {
+        return fransizProfiterol9
+      }
+    }
+    
+    // WAFFLE KATEGORİSİ
+    if (categoryNameLower.includes('waffle')) {
+      // Bardak Waffle ürünleri - tüm bardak waffle'lar için
+      if (productName.includes('bardak') && productName.includes('waffle')) {
+        return bardakJpg
+      }
+      // Klasik Waffle ürünleri - tüm klasik waffle'lar için
+      if (productName.includes('klasik') && productName.includes('waffle')) {
+        return klasikJpg
+      }
+      // Kova Waffle ürünleri - tüm kova waffle'lar için
+      if (productName.includes('kova') && productName.includes('waffle')) {
+        return kovaJpg
+      }
+    }
+    
+    // EKSTRA ÇİKOLATA KATEGORİSİ
+    if (categoryNameLower.includes('ekstra') && categoryNameLower.includes('cikolata')) {
+      return ekstraJpeg
+    }
+    
+    // FROZENLAR KATEGORİSİ
+    if (categoryNameLower.includes('frozen')) {
+      return frozenJpg
     }
     
     // Firebase'den cache'lenmiş görseli kontrol et
@@ -961,5 +1106,6 @@ export default function MenuNew() {
     </div>
   )
 }
+
 
 

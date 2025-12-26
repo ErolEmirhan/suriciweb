@@ -57,14 +57,23 @@ function AppContent() {
       </div>
       
       {/* Floating Buttons Container */}
-      <div className={`fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end transition-opacity duration-300 ${showButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      <div 
+        className={`fixed bottom-6 right-6 z-50 flex flex-col gap-3 items-end transition-opacity duration-300 ${showButtons ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        style={{ 
+          pointerEvents: buttonsCollapsed ? 'none' : 'auto',
+          width: buttonsCollapsed ? 'auto' : 'auto',
+          height: buttonsCollapsed ? 'auto' : 'auto'
+        }}
+      >
         <motion.div
           animate={{
             x: buttonsCollapsed ? 'calc(100% - 20px)' : 0,
-            opacity: buttonsCollapsed ? 0 : 1
+            opacity: buttonsCollapsed ? 0 : 1,
+            pointerEvents: buttonsCollapsed ? 'none' : 'auto'
           }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           className="flex flex-col gap-3 items-end"
+          style={{ pointerEvents: buttonsCollapsed ? 'none' : 'auto' }}
         >
           <LocationFloatingButton />
           <ReservationFloatingButton />
@@ -75,7 +84,8 @@ function AppContent() {
         <motion.button
           onClick={() => setButtonsCollapsed(!buttonsCollapsed)}
           whileTap={{ scale: 0.95 }}
-          className={`${buttonsCollapsed ? 'bg-primary-600' : 'bg-gray-700'} text-white p-3 rounded-full shadow-2xl transition-all duration-300`}
+          className={`${buttonsCollapsed ? 'bg-primary-600' : 'bg-gray-700'} text-white p-3 rounded-full shadow-2xl transition-all duration-300 relative z-10`}
+          style={{ pointerEvents: 'auto' }}
         >
           {buttonsCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </motion.button>
