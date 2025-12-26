@@ -69,22 +69,23 @@ export default function MenuNew() {
         // Önce LocalStorage'dan kontrol et
         const cachedCategories = localStorage.getItem('makara_categories')
         const cacheTimestamp = localStorage.getItem('makara_categories_timestamp')
-        const cacheExpiry = 30 * 24 * 60 * 60 * 1000 // 30 gün
+        const cacheExpiry = 5 * 60 * 1000 // 5 dakika (yeni ürünlerin hızlı görünmesi için)
         
         if (cachedCategories && cacheTimestamp) {
           const now = Date.now()
           const cacheTime = parseInt(cacheTimestamp)
           
-          // Cache hala geçerliyse (24 saat içindeyse)
+          // Cache hala geçerliyse önce göster
           if (now - cacheTime < cacheExpiry) {
             const categoriesData = JSON.parse(cachedCategories)
             setCategories(categoriesData)
             setLoading(false)
-            return
+            // Arka planda Firebase'den güncelle (stale-while-revalidate)
+            // Devam et, aşağıdaki kod çalışacak
           }
         }
         
-        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
+        // Her zaman Firebase'den çek ve cache'i güncelle
         const categoriesRef = collection(db, 'categories')
         let categoriesSnapshot
         
@@ -162,21 +163,22 @@ export default function MenuNew() {
         // Önce LocalStorage'dan kontrol et
         const cachedImages = localStorage.getItem('makara_images')
         const cacheTimestamp = localStorage.getItem('makara_images_timestamp')
-        const cacheExpiry = 30 * 24 * 60 * 60 * 1000 // 30 gün
+        const cacheExpiry = 5 * 60 * 1000 // 5 dakika (yeni görsellerin hızlı görünmesi için)
         
         if (cachedImages && cacheTimestamp) {
           const now = Date.now()
           const cacheTime = parseInt(cacheTimestamp)
           
-          // Cache hala geçerliyse (24 saat içindeyse)
+          // Cache hala geçerliyse önce göster
           if (now - cacheTime < cacheExpiry) {
             const imagesMap = JSON.parse(cachedImages)
             setImagesCache(imagesMap)
-            return
+            // Arka planda Firebase'den güncelle (stale-while-revalidate)
+            // Devam et, aşağıdaki kod çalışacak
           }
         }
         
-        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
+        // Her zaman Firebase'den çek ve cache'i güncelle
         const imagesRef = collection(db, 'images')
         const imagesSnapshot = await getDocs(imagesRef)
         const imagesMap = {}
@@ -229,53 +231,52 @@ export default function MenuNew() {
         // Önce LocalStorage'dan kontrol et
         const cachedProducts = localStorage.getItem('makara_products')
         const cacheTimestamp = localStorage.getItem('makara_products_timestamp')
-        const cacheExpiry = 30 * 24 * 60 * 60 * 1000 // 30 gün
+        const cacheExpiry = 5 * 60 * 1000 // 5 dakika (yeni ürünlerin hızlı görünmesi için)
         
+        // Önce cache'i göster (eğer varsa), sonra Firebase'den güncelle
         if (cachedProducts && cacheTimestamp) {
           const now = Date.now()
           const cacheTime = parseInt(cacheTimestamp)
           
-          // Cache hala geçerliyse (24 saat içindeyse)
+          // Cache hala geçerliyse önce göster
           if (now - cacheTime < cacheExpiry) {
             const productsData = JSON.parse(cachedProducts)
             setProducts(productsData)
-            return
+            // Arka planda Firebase'den güncelle (stale-while-revalidate)
+            // Devam et, aşağıdaki kod çalışacak
           }
         }
         
-        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
+        // Her zaman Firebase'den çek ve cache'i güncelle
+        // TÜM ÜRÜNLERİ TEK SEFERDE ÇEK (daha verimli)
         const productsRef = collection(db, 'products')
+        const allProductsSnapshot = await getDocs(productsRef)
+        const allProducts = allProductsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        
+        console.log('📦 Firebase\'den çekilen toplam ürün sayısı:', allProducts.length)
+        
+        // Ürünleri kategori ID'lerine göre grupla
         const productsData = {}
-
+        
         for (const category of categories) {
           const categoryId = category.id
           const categoryIdStr = String(categoryId)
           const categoryIdNum = Number(categoryId)
-
-          // category_id ile sorgula
-          let productsSnapshot
-          try {
-            let q = query(productsRef, where('category_id', '==', categoryIdStr))
-            productsSnapshot = await getDocs(q)
-          } catch (error) {
-            productsSnapshot = { docs: [], empty: true }
-          }
-
-          // Eğer bulunamazsa sayısal olarak dene
-          if (productsSnapshot.empty && !isNaN(categoryIdNum)) {
-            try {
-              let q = query(productsRef, where('category_id', '==', categoryIdNum))
-              productsSnapshot = await getDocs(q)
-            } catch (error) {
-              // Hata durumunda devam et
-            }
-          }
-
-          // Ürünleri al (görseller olmadan - hızlı yükleme)
-          const categoryProducts = productsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }))
+          
+          // Tüm ürünlerden bu kategoriye ait olanları filtrele
+          const categoryProducts = allProducts.filter(product => {
+            const productCategoryId = product.category_id
+            const productCategoryIdStr = String(productCategoryId)
+            const productCategoryIdNum = Number(productCategoryId)
+            
+            // String veya sayısal eşleşme kontrolü
+            return productCategoryIdStr === categoryIdStr || 
+                   productCategoryIdNum === categoryIdNum ||
+                   productCategoryId === categoryId
+          })
           
           // order_index veya order alanına göre sırala
           categoryProducts.sort((a, b) => {
@@ -284,7 +285,8 @@ export default function MenuNew() {
             if (aOrder !== bOrder) return aOrder - bOrder
             return (a.name || '').localeCompare(b.name || '', 'tr')
           })
-
+          
+          console.log(`📁 ${category.name} kategorisinde ${categoryProducts.length} ürün bulundu`)
           productsData[categoryId] = categoryProducts
         }
 
