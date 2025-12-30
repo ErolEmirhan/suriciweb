@@ -130,3 +130,4 @@ Eğer hala hata alıyorsanız:
 3. Firebase proje ayarlarını kontrol edin
 4. API anahtarlarının doğru olduğundan emin olun
 
+

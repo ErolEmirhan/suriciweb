@@ -51,6 +51,8 @@ import kovaJpg from '../assets/kova.jpg'
 import ekstraJpeg from '../assets/ekstra.jpeg'
 import frozenJpg from '../assets/frozen.jpg'
 import cupbarPng from '../assets/cupbar.png'
+import fracupPng from '../assets/fracup.png'
+import vanilyaPng from '../assets/vanilya.png'
 
 export default function MenuNew() {
   const [categories, setCategories] = useState([])
@@ -62,6 +64,7 @@ export default function MenuNew() {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedProductCategory, setSelectedProductCategory] = useState(null)
   const [imagesCache, setImagesCache] = useState(null) // Tüm görselleri cache'le
+  const [expandingCategories, setExpandingCategories] = useState(new Set()) // Kategori genişletme splash screen state
 
   // Kategorileri Firebase'den çek veya LocalStorage'dan oku
   useEffect(() => {
@@ -148,19 +151,6 @@ export default function MenuNew() {
         setLoading(false)
       } catch (error) {
         console.error('Kategoriler yüklenirken hata:', error)
-        // Firebase izin hatası durumunda cache'den yükle
-        if (error.code === 'permission-denied' || error.message?.includes('permissions')) {
-          const cachedCategories = localStorage.getItem('makara_categories')
-          if (cachedCategories) {
-            try {
-              const categoriesData = JSON.parse(cachedCategories)
-              setCategories(categoriesData)
-              console.warn('⚠️ Firebase izin hatası! Cache\'den kategoriler yüklendi.')
-            } catch (e) {
-              console.error('Cache\'den kategoriler yüklenirken hata:', e)
-            }
-          }
-        }
         setLoading(false)
       }
     }
@@ -230,19 +220,6 @@ export default function MenuNew() {
         setImagesCache(imagesMap)
       } catch (error) {
         console.error('Görseller yüklenirken hata:', error)
-        // Firebase izin hatası durumunda cache'den yükle
-        if (error.code === 'permission-denied' || error.message?.includes('permissions')) {
-          const cachedImages = localStorage.getItem('makara_images')
-          if (cachedImages) {
-            try {
-              const imagesMap = JSON.parse(cachedImages)
-              setImagesCache(imagesMap)
-              console.warn('⚠️ Firebase izin hatası! Cache\'den görseller yüklendi.')
-            } catch (e) {
-              console.error('Cache\'den görseller yüklenirken hata:', e)
-            }
-          }
-        }
       }
     }
     
@@ -324,19 +301,6 @@ export default function MenuNew() {
         setProducts(productsData)
       } catch (error) {
         console.error('Ürünler yüklenirken hata:', error)
-        // Firebase izin hatası durumunda cache'den yükle
-        if (error.code === 'permission-denied' || error.message?.includes('permissions')) {
-          const cachedProducts = localStorage.getItem('makara_products')
-          if (cachedProducts) {
-            try {
-              const productsData = JSON.parse(cachedProducts)
-              setProducts(productsData)
-              console.warn('⚠️ Firebase izin hatası! Cache\'den ürünler yüklendi.')
-            } catch (e) {
-              console.error('Cache\'den ürünler yüklenirken hata:', e)
-            }
-          }
-        }
       }
     }
 
@@ -389,8 +353,28 @@ export default function MenuNew() {
       const newSet = new Set(prev)
       if (newSet.has(categoryId)) {
         newSet.delete(categoryId)
+        // Kategori kapatıldığında splash screen'i kaldır
+        setExpandingCategories(prevExpanding => {
+          const newExpanding = new Set(prevExpanding)
+          newExpanding.delete(categoryId)
+          return newExpanding
+        })
       } else {
         newSet.add(categoryId)
+        // Kategori açıldığında splash screen'i göster
+        setExpandingCategories(prevExpanding => {
+          const newExpanding = new Set(prevExpanding)
+          newExpanding.add(categoryId)
+          return newExpanding
+        })
+        // 800ms sonra splash screen'i kaldır
+        setTimeout(() => {
+          setExpandingCategories(prevExpanding => {
+            const newExpanding = new Set(prevExpanding)
+            newExpanding.delete(categoryId)
+            return newExpanding
+          })
+        }, 800)
       }
       return newSet
     })
@@ -519,6 +503,10 @@ export default function MenuNew() {
       if (productName.includes('portakal')) {
         return portaJpg
       }
+      // Vanilya Çubuğu Fransız Pasta
+      if (productName.includes('vanilya') || productName.includes('vanilya cubugu') || productName.includes('vanilya çubuğu')) {
+        return vanilyaPng
+      }
     }
     
     // KRUVASANLAR KATEGORİSİ
@@ -571,7 +559,7 @@ export default function MenuNew() {
         return cupprofitJpeg
       }
       if (productName.includes('frambuaz') && productName.includes('cup')) {
-        return frambuazliCup7
+        return fracupPng
       }
       if (productName.includes('malaga')) {
         return fransizProfiterol9
@@ -662,81 +650,219 @@ export default function MenuNew() {
 
   // Splash screen - 2 saniye göster
   useEffect(() => {
+    // Splash screen gösterilirken body scroll'unu engelle
+    if (loading || showSplash) {
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
+      document.body.style.maxWidth = '100vw'
+      document.documentElement.style.overflowX = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.maxWidth = ''
+    }
+
     if (!loading) {
       const timer = setTimeout(() => {
         setShowSplash(false)
+        // Cleanup: scroll'u geri aç
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.width = ''
+        document.body.style.maxWidth = ''
       }, 2000)
-      return () => clearTimeout(timer)
+      return () => {
+        clearTimeout(timer)
+        // Cleanup: scroll'u geri aç
+        document.body.style.overflow = ''
+        document.body.style.position = ''
+        document.body.style.width = ''
+        document.body.style.maxWidth = ''
+      }
     }
-  }, [loading])
+
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+      document.body.style.maxWidth = ''
+    }
+  }, [loading, showSplash])
 
   if (loading || showSplash) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 z-50 overflow-hidden">
-        {/* Havadan yağan tatlı sembolleri */}
-        {[...Array(15)].map((_, i) => (
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-rose-50 via-pink-50 to-amber-50 z-50 overflow-hidden w-screen max-w-full" style={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+        {/* Animated gradient orbs - Futuristik arka plan efektleri */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            className="absolute top-1/4 left-1/4 w-96 h-96 bg-rose-400/30 rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.4, 0.6, 0.4],
+              x: [0, 50, 0],
+              y: [0, 30, 0],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div
+            className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-400/30 rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.4, 0.6, 0.4],
+              x: [0, -50, 0],
+              y: [0, -30, 0],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1
+            }}
+          />
+        </div>
+
+        {/* Subtle grid pattern - Modern dokusal arka plan */}
+        <div 
+          className="absolute inset-0 opacity-[0.08]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(236, 72, 153, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(236, 72, 153, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px'
+          }}
+        />
+
+        {/* Ana içerik */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center relative z-10"
+        >
+          {/* Logo/Mark alanı - Minimal ve şık */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="mb-8"
+          >
+            <div className="relative inline-block">
+              {/* Glow efekti */}
+              <div className="absolute inset-0 bg-rose-400/40 blur-2xl rounded-full scale-150" />
+              
+              {/* Ana başlık - Modern tipografi */}
+              <motion.h1
+                initial={{ opacity: 0, letterSpacing: '0.2em' }}
+                animate={{ opacity: 1, letterSpacing: '0.1em' }}
+                transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
+                className="relative text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-light text-rose-700 tracking-[0.15em] uppercase"
+                style={{
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  fontWeight: 300,
+                  letterSpacing: '0.15em',
+                  textShadow: '0 4px 20px rgba(236, 72, 153, 0.3), 0 0 40px rgba(236, 72, 153, 0.2)'
+                }}
+              >
+                MENÜ
+              </motion.h1>
+              
+              {/* Alt çizgi - Minimal dekoratif element */}
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '100%' }}
+                transition={{ delay: 0.8, duration: 0.6, ease: "easeOut" }}
+                className="h-px bg-gradient-to-r from-transparent via-rose-500/70 to-transparent mt-4 mx-auto"
+                style={{ maxWidth: '200px' }}
+              />
+            </div>
+          </motion.div>
+          
+          {/* Loading indicator - Profesyonel ve minimal */}
+          {loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="flex flex-col items-center justify-center gap-4 mt-8"
+            >
+              {/* Modern loading spinner */}
+              <div className="relative w-12 h-12">
+                <motion.div
+                  className="absolute inset-0 border-2 border-rose-300/40 rounded-full"
+                />
+                <motion.div
+                  className="absolute inset-0 border-2 border-transparent border-t-rose-500 rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                />
+                <motion.div
+                  className="absolute inset-2 border-2 border-transparent border-r-pink-500 rounded-full"
+                  animate={{ rotate: -360 }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                />
+              </div>
+              
+              {/* Loading text - Minimal ve şık */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0.6, 1, 0.6] }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="text-sm font-light text-rose-600/80 tracking-wider uppercase"
+                style={{ letterSpacing: '0.2em' }}
+              >
+                Yükleniyor
+              </motion.p>
+            </motion.div>
+          )}
+        </motion.div>
+
+        {/* Subtle particles - Minimal parçacık efekti */}
+        {[...Array(8)].map((_, i) => (
           <motion.div
             key={i}
             initial={{ 
-              y: -100, 
               opacity: 0,
-              rotate: 0
+              scale: 0
             }}
             animate={{ 
-              y: '100vh',
-              opacity: [0, 1, 1, 0],
-              rotate: 360
+              opacity: [0, 0.5, 0],
+              scale: [0, 1, 0],
+              y: [0, -100],
+              x: [0, (Math.random() - 0.5) * 200]
             }}
             transition={{
               duration: 3 + Math.random() * 2,
               repeat: Infinity,
               delay: Math.random() * 2,
-              ease: "linear"
+              ease: "easeOut"
             }}
-            className="absolute text-4xl sm:text-5xl md:text-6xl pointer-events-none"
+            className="absolute w-1 h-1 bg-rose-500/70 rounded-full blur-sm"
             style={{
-              left: `${(i * 6.67) + Math.random() * 5}%`
+              left: `${20 + (i * 10)}%`,
+              top: `${30 + Math.random() * 40}%`
             }}
-          >
-            🍰
-          </motion.div>
+          />
         ))}
-        
-        {/* Ortada MENÜ yazısı */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5, y: 50 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center relative z-10"
-        >
-          <motion.h1
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-pink-600 mb-4 tracking-tight"
-            style={{
-              textShadow: '0 4px 20px rgba(236, 72, 153, 0.3)'
-            }}
-          >
-            MENÜ
-          </motion.h1>
-          
-          {loading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center justify-center gap-2 mt-4"
-            >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-6 h-6 border-3 border-pink-400 border-t-transparent rounded-full"
-              />
-              <p className="text-lg font-semibold text-gray-600">Yükleniyor...</p>
-            </motion.div>
-          )}
-        </motion.div>
       </div>
     )
   }
@@ -759,12 +885,14 @@ export default function MenuNew() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-3 px-2 sm:py-4 sm:px-3 lg:py-6 lg:px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-3 px-2 sm:py-4 sm:px-3 lg:py-6 lg:px-4 overflow-x-hidden w-full max-w-full">
+      <div className="max-w-7xl mx-auto w-full px-2 sm:px-3">
         {/* Başlık - Kompakt */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: -30, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="text-center mb-3 sm:mb-4"
         >
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-1 flex items-center justify-center gap-2">
@@ -775,7 +903,7 @@ export default function MenuNew() {
         </motion.div>
 
         {/* Kategori Kartları - Kompakt Grid Layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 -mt-2 sm:-mt-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 -mt-2 sm:-mt-3 w-full max-w-full overflow-x-hidden">
           {categories.length === 0 && !loading && (
             <div className="col-span-full text-center py-4">
               <p className="text-gray-600 text-sm">Henüz kategori bulunmamaktadır.</p>
@@ -793,10 +921,11 @@ export default function MenuNew() {
                 {/* TATLILAR Bölüm Ayracı - MAKARALAR'dan önce */}
                 {isMakara && (
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="col-span-full mt-4 sm:mt-6 mb-2 sm:mb-3"
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    className="col-span-full mt-4 sm:mt-6 mb-2 sm:mb-3 w-full max-w-full overflow-x-hidden"
                   >
                     <div className="relative flex items-center justify-center gap-6 sm:gap-8">
                       {/* Sol Çizgi - Kalın ve Gradient */}
@@ -824,10 +953,11 @@ export default function MenuNew() {
                 {/* İÇECEKLER Bölüm Ayracı - Modern ve Profesyonel */}
                 {isHotDrinks && (
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="col-span-full mb-6 sm:mb-8"
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    className="col-span-full mb-6 sm:mb-8 w-full max-w-full overflow-x-hidden"
                   >
                     <div className="relative flex items-center justify-center gap-6 sm:gap-8">
                       {/* Sol Çizgi - Kalın ve Gradient */}
@@ -853,10 +983,15 @@ export default function MenuNew() {
                 )}
               <motion.div
                 key={category.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03 }}
-                className="bg-white rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden active:scale-[0.98] transition-all duration-500 border-2 border-gray-100/80 hover:border-pink-200/60 group/card backdrop-blur-sm"
+                initial={{ opacity: 0, y: 40, scale: 0.9 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ 
+                  duration: 0.5, 
+                  delay: index * 0.05,
+                  ease: [0.22, 1, 0.36, 1]
+                }}
+                className="bg-white rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden active:scale-[0.98] transition-all duration-500 border-2 border-gray-100/80 hover:border-pink-200/60 group/card backdrop-blur-sm w-full max-w-full"
               >
                 {/* Kategori Başlığı - Kompakt */}
                 <div
@@ -924,25 +1059,161 @@ export default function MenuNew() {
 
                 {/* Ürünler Listesi - Kompakt Grid */}
                 <AnimatePresence>
-                  {isExpanded && categoryProducts.length > 0 && (
+                  {isExpanded && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
+                      className="overflow-hidden relative"
                     >
+                      {/* Kategori Genişletme Splash Screen */}
+                      {expandingCategories.has(category.id) && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="absolute inset-0 z-20 flex items-center justify-center bg-gradient-to-br from-white via-rose-50/40 to-pink-50/40 backdrop-blur-md"
+                        >
+                          {/* Modern Loading Animation */}
+                          <div className="flex flex-col items-center justify-center gap-5 px-4">
+                            {/* Animated Gradient Orb - Premium Design */}
+                            <motion.div
+                              className="relative w-20 h-20"
+                              animate={{
+                                scale: [1, 1.15, 1],
+                                rotate: [0, 180, 360]
+                              }}
+                              transition={{
+                                duration: 2.5,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                              }}
+                            >
+                              {/* Outer Glow */}
+                              <div className="absolute inset-0 bg-gradient-to-br from-rose-400 via-pink-500 to-rose-500 rounded-full blur-2xl opacity-50" />
+                              {/* Middle Ring */}
+                              <div className="absolute inset-1 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full" />
+                              {/* Inner Core */}
+                              <motion.div
+                                className="absolute inset-3 bg-gradient-to-br from-white to-rose-50 rounded-full shadow-inner"
+                                animate={{
+                                  scale: [1, 0.85, 1],
+                                  opacity: [0.4, 0.7, 0.4]
+                                }}
+                                transition={{
+                                  duration: 1.8,
+                                  repeat: Infinity,
+                                  ease: "easeInOut"
+                                }}
+                              />
+                              {/* Center Pulse */}
+                              <motion.div
+                                className="absolute inset-5 bg-rose-500 rounded-full"
+                                animate={{
+                                  scale: [0.5, 1, 0.5],
+                                  opacity: [0.6, 0.9, 0.6]
+                                }}
+                                transition={{
+                                  duration: 1.2,
+                                  repeat: Infinity,
+                                  ease: "easeInOut"
+                                }}
+                              />
+                            </motion.div>
+                            
+                            {/* Category Name - Elegant Typography */}
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.15, duration: 0.4 }}
+                              className="text-center"
+                            >
+                              <motion.h3
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.25, duration: 0.4 }}
+                                className="text-sm sm:text-base font-light text-rose-700/90 tracking-widest uppercase mb-2"
+                                style={{ letterSpacing: '0.2em' }}
+                              >
+                                {category.name}
+                              </motion.h3>
+                              <motion.div
+                                initial={{ width: 0, opacity: 0 }}
+                                animate={{ width: '100%', opacity: 1 }}
+                                transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
+                                className="h-px bg-gradient-to-r from-transparent via-rose-400/50 to-transparent mx-auto"
+                                style={{ maxWidth: '100px' }}
+                              />
+                            </motion.div>
+                            
+                            {/* Elegant Loading Indicator */}
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ delay: 0.3 }}
+                              className="flex items-center gap-2"
+                            >
+                              {/* Animated Dots */}
+                              {[0, 1, 2].map((i) => (
+                                <motion.div
+                                  key={i}
+                                  className="w-1.5 h-1.5 bg-rose-500/70 rounded-full"
+                                  animate={{
+                                    scale: [1, 1.3, 1],
+                                    opacity: [0.5, 1, 0.5]
+                                  }}
+                                  transition={{
+                                    duration: 1.2,
+                                    repeat: Infinity,
+                                    delay: i * 0.2,
+                                    ease: "easeInOut"
+                                  }}
+                                />
+                              ))}
+                            </motion.div>
+                            
+                            {/* Subtle Progress Bar - Refined */}
+                            <motion.div
+                              initial={{ width: 0, opacity: 0 }}
+                              animate={{ width: '100%', opacity: 1 }}
+                              transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
+                              className="relative h-0.5 bg-rose-100/50 rounded-full overflow-hidden"
+                              style={{ maxWidth: '140px' }}
+                            >
+                              <motion.div
+                                className="absolute inset-0 bg-gradient-to-r from-rose-400 via-pink-500 to-rose-500 rounded-full"
+                                initial={{ x: '-100%' }}
+                                animate={{ x: '100%' }}
+                                transition={{
+                                  duration: 1.5,
+                                  repeat: Infinity,
+                                  ease: "easeInOut"
+                                }}
+                              />
+                            </motion.div>
+                          </div>
+                        </motion.div>
+                      )}
+                      
+                      {categoryProducts.length > 0 && (
                       <div className="p-2 sm:p-3">
                         {/* 6'dan fazla ürün varsa horizontal scroll, yoksa grid */}
                         {categoryProducts.length > 6 ? (
-                          <div className="overflow-x-auto scrollbar-hide -mx-2 sm:-mx-3 px-2 sm:px-3 snap-x snap-mandatory">
+                          <div className="overflow-x-auto scrollbar-hide -mx-2 sm:-mx-3 px-2 sm:px-3 snap-x snap-mandatory w-full" style={{ maxWidth: '100%' }}>
                             <div className="flex gap-2 pb-1" style={{ width: 'max-content' }}>
                               {categoryProducts.map((product, productIndex) => (
                                 <motion.div
                                   key={product.id}
-                                  initial={{ opacity: 0, scale: 0.95 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ delay: productIndex * 0.02 }}
+                                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                  viewport={{ once: true, amount: 0.2 }}
+                                  transition={{ 
+                                    duration: 0.4, 
+                                    delay: productIndex * 0.03,
+                                    ease: [0.22, 1, 0.36, 1]
+                                  }}
                                   onClick={() => {
                                     setSelectedProduct(product)
                                     setSelectedProductCategory(category.name)
@@ -998,9 +1269,14 @@ export default function MenuNew() {
                             {categoryProducts.map((product, productIndex) => (
                               <motion.div
                                 key={product.id}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: productIndex * 0.02 }}
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                viewport={{ once: true, amount: 0.2 }}
+                                transition={{ 
+                                  duration: 0.4, 
+                                  delay: productIndex * 0.03,
+                                  ease: [0.22, 1, 0.36, 1]
+                                }}
                                 onClick={() => {
                                   setSelectedProduct(product)
                                   setSelectedProductCategory(category.name)
@@ -1052,6 +1328,7 @@ export default function MenuNew() {
                           </div>
                         )}
                       </div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
