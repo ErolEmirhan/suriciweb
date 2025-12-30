@@ -50,6 +50,7 @@ import klasikJpg from '../assets/klasik.jpg'
 import kovaJpg from '../assets/kova.jpg'
 import ekstraJpeg from '../assets/ekstra.jpeg'
 import frozenJpg from '../assets/frozen.jpg'
+import cupbarPng from '../assets/cupbar.png'
 
 export default function MenuNew() {
   const [categories, setCategories] = useState([])
@@ -147,6 +148,19 @@ export default function MenuNew() {
         setLoading(false)
       } catch (error) {
         console.error('Kategoriler yüklenirken hata:', error)
+        // Firebase izin hatası durumunda cache'den yükle
+        if (error.code === 'permission-denied' || error.message?.includes('permissions')) {
+          const cachedCategories = localStorage.getItem('makara_categories')
+          if (cachedCategories) {
+            try {
+              const categoriesData = JSON.parse(cachedCategories)
+              setCategories(categoriesData)
+              console.warn('⚠️ Firebase izin hatası! Cache\'den kategoriler yüklendi.')
+            } catch (e) {
+              console.error('Cache\'den kategoriler yüklenirken hata:', e)
+            }
+          }
+        }
         setLoading(false)
       }
     }
@@ -216,6 +230,19 @@ export default function MenuNew() {
         setImagesCache(imagesMap)
       } catch (error) {
         console.error('Görseller yüklenirken hata:', error)
+        // Firebase izin hatası durumunda cache'den yükle
+        if (error.code === 'permission-denied' || error.message?.includes('permissions')) {
+          const cachedImages = localStorage.getItem('makara_images')
+          if (cachedImages) {
+            try {
+              const imagesMap = JSON.parse(cachedImages)
+              setImagesCache(imagesMap)
+              console.warn('⚠️ Firebase izin hatası! Cache\'den görseller yüklendi.')
+            } catch (e) {
+              console.error('Cache\'den görseller yüklenirken hata:', e)
+            }
+          }
+        }
       }
     }
     
@@ -297,6 +324,19 @@ export default function MenuNew() {
         setProducts(productsData)
       } catch (error) {
         console.error('Ürünler yüklenirken hata:', error)
+        // Firebase izin hatası durumunda cache'den yükle
+        if (error.code === 'permission-denied' || error.message?.includes('permissions')) {
+          const cachedProducts = localStorage.getItem('makara_products')
+          if (cachedProducts) {
+            try {
+              const productsData = JSON.parse(cachedProducts)
+              setProducts(productsData)
+              console.warn('⚠️ Firebase izin hatası! Cache\'den ürünler yüklendi.')
+            } catch (e) {
+              console.error('Cache\'den ürünler yüklenirken hata:', e)
+            }
+          }
+        }
       }
     }
 
@@ -427,6 +467,10 @@ export default function MenuNew() {
           productName.includes('bol çikolatalı') || productName.includes('bol cikolata') ||
           productName.includes('bol çikolata'))) {
         return bolJpg
+      }
+      // Makara Cup Bardak
+      if (productName.includes('cup') && productName.includes('bardak')) {
+        return cupbarPng
       }
     }
     
