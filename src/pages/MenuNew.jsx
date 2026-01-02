@@ -53,6 +53,10 @@ import frozenJpg from '../assets/frozen.jpg'
 import cupbarPng from '../assets/cupbar.png'
 import fracupPng from '../assets/fracup.png'
 import vanilyaPng from '../assets/vanilya.png'
+import baklavaJpg from '../assets/baklava.jpg'
+import malagaframbuazJpg from '../assets/malagaframbuaz.jpg'
+import mixprofiterolJpg from '../assets/mixprofiterol.jpg'
+import spangleJpg from '../assets/spangle.jpg'
 
 export default function MenuNew() {
   const [categories, setCategories] = useState([])
@@ -528,6 +532,9 @@ export default function MenuNew() {
       if (productName.includes('limonlu cheesecake') || productName.includes('limon cheesecake')) {
         return limonluCheesecake16
       }
+      if (productName.includes('mix profiterol')) {
+        return mixprofiterolJpg
+      }
       if (productName.includes('fransız profiterol') || productName.includes('fransiz profiterol')) {
         return franJpeg
       }
@@ -561,8 +568,17 @@ export default function MenuNew() {
       if (productName.includes('frambuaz') && productName.includes('cup')) {
         return fracupPng
       }
+      if ((productName.includes('frambuazli malaga') || productName.includes('frambuazlı malaga') || productName.includes('frambuaz malaga')) && !productName.includes('cup')) {
+        return malagaframbuazJpg
+      }
       if (productName.includes('malaga')) {
         return fransizProfiterol9
+      }
+      if (productName.includes('baklava aski') || productName.includes('baklava aşkı') || productName.includes('baklava ask')) {
+        return baklavaJpg
+      }
+      if (productName.includes('supangle') || productName.includes('supangle')) {
+        return spangleJpg
       }
     }
     
