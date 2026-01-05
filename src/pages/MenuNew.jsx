@@ -515,7 +515,13 @@ export default function MenuNew() {
     
     // KRUVASANLAR KATEGORİSİ
     if (categoryNameLower.includes('kruvasan') || categoryNameLower.includes('kruvasan')) {
-      return kruvasan26
+      // Çikolatalı Roll Kruvasan ve Frambuazlı Roll Kruvasan için görsel kaldırıldı
+      if (productName.includes('cikolatali roll kruvasan') || productName.includes('çikolatalı roll kruvasan') ||
+          productName.includes('frambuazli roll kruvasan') || productName.includes('frambuazlı roll kruvasan')) {
+        // Bu ürünler için görsel döndürme, varsayılan görsel kullanılacak
+      } else {
+        return kruvasan26
+      }
     }
     
     // SÜTLÜ TATLILAR VE PASTALAR KATEGORİSİ
