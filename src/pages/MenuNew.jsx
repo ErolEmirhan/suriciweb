@@ -57,6 +57,7 @@ import baklavaJpg from '../assets/baklava.jpg'
 import malagaframbuazJpg from '../assets/malagaframbuaz.jpg'
 import mixprofiterolJpg from '../assets/mixprofiterol.jpg'
 import spangleJpg from '../assets/spangle.jpg'
+import kadayifJpg from '../assets/kadayif.jpg'
 
 export default function MenuNew() {
   const [categories, setCategories] = useState([])
@@ -585,6 +586,11 @@ export default function MenuNew() {
       }
       if (productName.includes('supangle') || productName.includes('supangle')) {
         return spangleJpg
+      }
+      if (productName.includes('sutlu antep kadayif') || productName.includes('sütlü antep kadayıf') || 
+          (productName.includes('antep') && productName.includes('kadayif')) || 
+          (productName.includes('antep') && productName.includes('kadayıf'))) {
+        return kadayifJpg
       }
     }
     
