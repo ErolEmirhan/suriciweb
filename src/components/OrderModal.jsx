@@ -263,6 +263,7 @@ export default function OrderModal({ isOpen, onClose }) {
     }
   }
 
+  // Eğer modal kapalıysa ve sayfa olarak kullanılmıyorsa hiçbir şey gösterme
   if (!isOpen) return null
 
   return (

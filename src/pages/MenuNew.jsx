@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { ChevronDown, ChevronUp, Sparkles, ShoppingBag } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import OrderModal from '../components/OrderModal'
 
 // Assets'ten görselleri import et
@@ -75,6 +76,7 @@ export default function MenuNew() {
   const [expandingCategories, setExpandingCategories] = useState(new Set()) // Kategori genişletme splash screen state
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false) // Online sipariş modal state
   const [showComingSoonModal, setShowComingSoonModal] = useState(false) // Yakında hizmetinizdeyiz modal
+  const navigate = useNavigate()
 
   // Kategorileri Firebase'den çek veya LocalStorage'dan oku
   useEffect(() => {
@@ -924,22 +926,34 @@ export default function MenuNew() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-3 px-2 sm:py-4 sm:px-3 lg:py-6 lg:px-4 overflow-x-hidden w-full max-w-full relative">
-      {/* Sabit Online Sipariş Butonu - Sağ Üstte */}
-      {!isOrderModalOpen && !showComingSoonModal && (
+      {/* Sabit Online Sipariş Butonu - Mobil: Alt Ortada, Desktop: Sağ Üstte */}
+      {!isOrderModalOpen && (
         <button
-          onClick={() => setShowComingSoonModal(true)}
-          className="fixed top-16 right-4 z-[9999] bg-gradient-to-r from-rose-600 to-pink-600 text-white px-4 py-3 rounded-full shadow-2xl hover:shadow-rose-500/50 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 font-semibold text-sm sm:text-base"
+          onClick={() => navigate('/menu/order')}
+          className="fixed z-[9999] bg-gradient-to-r from-green-600 via-emerald-600 to-green-500 text-white rounded-full shadow-2xl hover:shadow-green-500/60 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 font-semibold touch-manipulation
+            /* Mobil: Alt ortada, büyük floating button */
+            bottom-6 left-1/2 -translate-x-1/2 w-[85%] max-w-sm py-4 px-6 text-base
+            /* Desktop: Sağ üstte, kompakt */
+            sm:bottom-auto sm:top-16 sm:right-4 sm:left-auto sm:translate-x-0 sm:w-auto sm:max-w-none sm:py-3 sm:px-4 sm:text-sm
+            /* Pulse animasyon efekti */
+            animate-pulse sm:animate-none"
           style={{ 
-            boxShadow: '0 10px 25px rgba(225, 29, 72, 0.4)',
+            boxShadow: '0 10px 30px rgba(22, 163, 74, 0.5), 0 0 20px rgba(16, 185, 129, 0.3)',
             position: 'fixed',
-            top: '4rem',
-            right: '1rem',
-            zIndex: 9999
+            zIndex: 9999,
+            WebkitTapHighlightColor: 'transparent'
           }}
         >
-          <ShoppingBag className="w-5 h-5" />
+          {/* İkon container - daha belirgin */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-white/20 rounded-full blur-sm" />
+            <ShoppingBag className="w-6 h-6 sm:w-5 sm:h-5 relative z-10" strokeWidth={2.5} />
+          </div>
           <span className="hidden sm:inline">Online Sipariş Ver</span>
-          <span className="sm:hidden">Sipariş</span>
+          <span className="sm:hidden font-bold tracking-wide">Online Sipariş Ver</span>
+          
+          {/* Mobil için ekstra vurgu - küçük badge */}
+          <span className="sm:hidden absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white animate-ping" />
         </button>
       )}
 
