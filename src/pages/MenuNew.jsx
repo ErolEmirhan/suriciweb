@@ -59,6 +59,8 @@ import malagaframbuazJpg from '../assets/malagaframbuaz.jpg'
 import mixprofiterolJpg from '../assets/mixprofiterol.jpg'
 import spangleJpg from '../assets/spangle.jpg'
 import kadayifJpg from '../assets/kadayif.jpg'
+import armutJpg from '../assets/armut.jpg'
+import elmaJpg from '../assets/elma.jpg'
 
 export default function MenuNew() {
   const [categories, setCategories] = useState([])
@@ -72,6 +74,7 @@ export default function MenuNew() {
   const [imagesCache, setImagesCache] = useState(null) // Tüm görselleri cache'le
   const [expandingCategories, setExpandingCategories] = useState(new Set()) // Kategori genişletme splash screen state
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false) // Online sipariş modal state
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false) // Yakında hizmetinizdeyiz modal
 
   // Kategorileri Firebase'den çek veya LocalStorage'dan oku
   useEffect(() => {
@@ -80,23 +83,22 @@ export default function MenuNew() {
         // Önce LocalStorage'dan kontrol et
         const cachedCategories = localStorage.getItem('makara_categories')
         const cacheTimestamp = localStorage.getItem('makara_categories_timestamp')
-        const cacheExpiry = 5 * 60 * 1000 // 5 dakika (yeni ürünlerin hızlı görünmesi için)
+        const cacheExpiry = 24 * 60 * 60 * 1000 // 24 saat (Firebase reads limitini aşmamak için)
         
         if (cachedCategories && cacheTimestamp) {
           const now = Date.now()
           const cacheTime = parseInt(cacheTimestamp)
           
-          // Cache hala geçerliyse önce göster
+          // Cache hala geçerliyse sadece cache'den göster, Firebase'den çekme
           if (now - cacheTime < cacheExpiry) {
             const categoriesData = JSON.parse(cachedCategories)
             setCategories(categoriesData)
             setLoading(false)
-            // Arka planda Firebase'den güncelle (stale-while-revalidate)
-            // Devam et, aşağıdaki kod çalışacak
+            return // Firebase'den çekme, cache yeterli
           }
         }
         
-        // Her zaman Firebase'den çek ve cache'i güncelle
+        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
         const categoriesRef = collection(db, 'categories')
         let categoriesSnapshot
         
@@ -174,22 +176,21 @@ export default function MenuNew() {
         // Önce LocalStorage'dan kontrol et
         const cachedImages = localStorage.getItem('makara_images')
         const cacheTimestamp = localStorage.getItem('makara_images_timestamp')
-        const cacheExpiry = 5 * 60 * 1000 // 5 dakika (yeni görsellerin hızlı görünmesi için)
+        const cacheExpiry = 24 * 60 * 60 * 1000 // 24 saat (Firebase reads limitini aşmamak için)
         
         if (cachedImages && cacheTimestamp) {
           const now = Date.now()
           const cacheTime = parseInt(cacheTimestamp)
           
-          // Cache hala geçerliyse önce göster
+          // Cache hala geçerliyse sadece cache'den göster, Firebase'den çekme
           if (now - cacheTime < cacheExpiry) {
             const imagesMap = JSON.parse(cachedImages)
             setImagesCache(imagesMap)
-            // Arka planda Firebase'den güncelle (stale-while-revalidate)
-            // Devam et, aşağıdaki kod çalışacak
+            return // Firebase'den çekme, cache yeterli
           }
         }
         
-        // Her zaman Firebase'den çek ve cache'i güncelle
+        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
         const imagesRef = collection(db, 'images')
         const imagesSnapshot = await getDocs(imagesRef)
         const imagesMap = {}
@@ -242,23 +243,22 @@ export default function MenuNew() {
         // Önce LocalStorage'dan kontrol et
         const cachedProducts = localStorage.getItem('makara_products')
         const cacheTimestamp = localStorage.getItem('makara_products_timestamp')
-        const cacheExpiry = 5 * 60 * 1000 // 5 dakika (yeni ürünlerin hızlı görünmesi için)
+        const cacheExpiry = 24 * 60 * 60 * 1000 // 24 saat (Firebase reads limitini aşmamak için)
         
-        // Önce cache'i göster (eğer varsa), sonra Firebase'den güncelle
+        // Cache geçerliyse sadece cache'den göster
         if (cachedProducts && cacheTimestamp) {
           const now = Date.now()
           const cacheTime = parseInt(cacheTimestamp)
           
-          // Cache hala geçerliyse önce göster
+          // Cache hala geçerliyse sadece cache'den göster, Firebase'den çekme
           if (now - cacheTime < cacheExpiry) {
             const productsData = JSON.parse(cachedProducts)
             setProducts(productsData)
-            // Arka planda Firebase'den güncelle (stale-while-revalidate)
-            // Devam et, aşağıdaki kod çalışacak
+            return // Firebase'den çekme, cache yeterli
           }
         }
         
-        // Her zaman Firebase'den çek ve cache'i güncelle
+        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
         // TÜM ÜRÜNLERİ TEK SEFERDE ÇEK (daha verimli)
         const productsRef = collection(db, 'products')
         const allProductsSnapshot = await getDocs(productsRef)
@@ -467,6 +467,14 @@ export default function MenuNew() {
     
     // FRANSIZ PASTALARI KATEGORİSİ
     if (categoryNameLower.includes('fransız') || categoryNameLower.includes('fransiz')) {
+      // Armut fransız pasta
+      if (productName.includes('armut')) {
+        return armutJpg
+      }
+      // Elma fransız pasta (fransiz veya fırasız yazımı)
+      if (productName.includes('elma')) {
+        return elmaJpg
+      }
       if (productName.includes('frambuaz')) {
         return frambuaz20
       }
@@ -917,9 +925,9 @@ export default function MenuNew() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-3 px-2 sm:py-4 sm:px-3 lg:py-6 lg:px-4 overflow-x-hidden w-full max-w-full relative">
       {/* Sabit Online Sipariş Butonu - Sağ Üstte */}
-      {!isOrderModalOpen && (
+      {!isOrderModalOpen && !showComingSoonModal && (
         <button
-          onClick={() => setIsOrderModalOpen(true)}
+          onClick={() => setShowComingSoonModal(true)}
           className="fixed top-16 right-4 z-[9999] bg-gradient-to-r from-rose-600 to-pink-600 text-white px-4 py-3 rounded-full shadow-2xl hover:shadow-rose-500/50 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2 font-semibold text-sm sm:text-base"
           style={{ 
             boxShadow: '0 10px 25px rgba(225, 29, 72, 0.4)',
@@ -1430,11 +1438,77 @@ export default function MenuNew() {
         )}
       </AnimatePresence>
 
-      {/* Online Sipariş Modal */}
-      <OrderModal
+      {/* Online Sipariş Modal - ŞİMDİLİK DEVRE DIŞI */}
+      {/* <OrderModal
         isOpen={isOrderModalOpen}
         onClose={() => setIsOrderModalOpen(false)}
-      />
+      /> */}
+
+      {/* Yakında Hizmetinizdeyiz Modal - ŞİMDİLİK AKTİF */}
+      <AnimatePresence>
+        {showComingSoonModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowComingSoonModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden"
+            >
+              {/* İçerik */}
+              <div className="p-8 text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+                  className="mb-6 flex justify-center"
+                >
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-rose-500/20 rounded-full blur-2xl" />
+                    <ShoppingBag className="w-16 h-16 text-rose-600 relative z-10" strokeWidth={1.5} />
+                  </div>
+                </motion.div>
+
+                <motion.h2
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-2xl font-bold text-gray-900 mb-3"
+                >
+                  Yakında Hizmetinizdeyiz
+                </motion.h2>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-gray-600 mb-6 leading-relaxed"
+                >
+                  Online sipariş özelliği yakında aktif olacaktır. 
+                  Şimdilik restoranımıza gelerek siparişinizi verebilirsiniz.
+                </motion.p>
+
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  onClick={() => setShowComingSoonModal(false)}
+                  className="w-full bg-gradient-to-r from-rose-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:from-rose-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-rose-500/50 transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Tamam
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

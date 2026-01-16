@@ -56,6 +56,8 @@ import malagaframbuazJpg from '../assets/malagaframbuaz.jpg'
 import mixprofiterolJpg from '../assets/mixprofiterol.jpg'
 import spangleJpg from '../assets/spangle.jpg'
 import kadayifJpg from '../assets/kadayif.jpg'
+import armutJpg from '../assets/armut.jpg'
+import elmaJpg from '../assets/elma.jpg'
 
 export default function ProductSelector({ onClose, onAddToCart, cartItems }) {
   const [categories, setCategories] = useState([])
@@ -69,6 +71,40 @@ export default function ProductSelector({ onClose, onAddToCart, cartItems }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Önce LocalStorage'dan kontrol et
+        const cachedCategories = localStorage.getItem('makara_categories')
+        const cachedProducts = localStorage.getItem('makara_products')
+        const cacheTimestamp = localStorage.getItem('makara_categories_timestamp')
+        const cacheExpiry = 24 * 60 * 60 * 1000 // 24 saat (Firebase reads limitini aşmamak için)
+        
+        if (cachedCategories && cachedProducts && cacheTimestamp) {
+          const now = Date.now()
+          const cacheTime = parseInt(cacheTimestamp)
+          
+          // Cache geçerliyse sadece cache'den göster
+          if (now - cacheTime < cacheExpiry) {
+            const categoriesData = JSON.parse(cachedCategories)
+            const productsData = JSON.parse(cachedProducts)
+            
+            // Ürünleri kategoriye göre grupla (productsData zaten kategori ID'lerine göre gruplanmış)
+            const productsByCategory = {}
+            categoriesData.forEach(category => {
+              productsByCategory[category.id] = productsData[category.id] || []
+            })
+            
+            setCategories(categoriesData)
+            setProducts(productsByCategory)
+            
+            if (categoriesData.length > 0) {
+              setSelectedCategory(categoriesData[0].id)
+            }
+            
+            setLoading(false)
+            return // Firebase'den çekme, cache yeterli
+          }
+        }
+        
+        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
         // Kategorileri çek
         const categoriesRef = collection(db, 'categories')
         const categoriesSnapshot = await getDocs(categoriesRef)
@@ -161,6 +197,24 @@ export default function ProductSelector({ onClose, onAddToCart, cartItems }) {
   useEffect(() => {
     const fetchImages = async () => {
       try {
+        // Önce LocalStorage'dan kontrol et
+        const cachedImages = localStorage.getItem('makara_images')
+        const cacheTimestamp = localStorage.getItem('makara_images_timestamp')
+        const cacheExpiry = 24 * 60 * 60 * 1000 // 24 saat
+        
+        if (cachedImages && cacheTimestamp) {
+          const now = Date.now()
+          const cacheTime = parseInt(cacheTimestamp)
+          
+          // Cache geçerliyse sadece cache'den göster
+          if (now - cacheTime < cacheExpiry) {
+            const imagesMap = JSON.parse(cachedImages)
+            setImagesCache(imagesMap)
+            return // Firebase'den çekme, cache yeterli
+          }
+        }
+        
+        // Cache yoksa veya süresi dolmuşsa Firebase'den çek
         const imagesRef = collection(db, 'images')
         const imagesSnapshot = await getDocs(imagesRef)
         const imagesMap = {}
@@ -283,6 +337,14 @@ export default function ProductSelector({ onClose, onAddToCart, cartItems }) {
     
     // FRANSIZ PASTALARI KATEGORİSİ
     if (categoryNameLower.includes('fransız') || categoryNameLower.includes('fransiz')) {
+      // Armut fransız pasta
+      if (productName.includes('armut')) {
+        return armutJpg
+      }
+      // Elma fransız pasta (fransiz veya fırasız yazımı)
+      if (productName.includes('elma')) {
+        return elmaJpg
+      }
       if (productName.includes('frambuaz')) {
         return frambuaz20
       }
