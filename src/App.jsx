@@ -9,6 +9,7 @@ import About from './pages/About'
 import Gallery from './pages/Gallery'
 import Menu from './pages/MenuNew'
 import Contact from './pages/Contact'
+import Order from './pages/Order'
 import ScrollToTop from './components/ScrollToTop'
 import InstagramFloatingButton from './components/InstagramFloatingButton'
 import ReservationFloatingButton from './components/ReservationFloatingButton'
@@ -49,6 +50,7 @@ function AppContent() {
               <Route path="/hakkimizda" element={<About />} />
               <Route path="/galeri" element={<Gallery />} />
               <Route path="/menu" element={<Menu />} />
+              <Route path="/menu/order" element={<Order />} />
               <Route path="/iletisim" element={<Contact />} />
             </Routes>
           </AnimatePresence>

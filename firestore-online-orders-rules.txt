@@ -1,0 +1,57 @@
+// Firebase Firestore Security Rules for Online Orders
+// Bu kuralları Firebase Console > Firestore Database > Rules bölümüne yapıştırın
+// Proje: makaraonline-5464e
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Online siparişler koleksiyonu - Herkes yazabilir, okuma sadece admin için
+    match /orders/{orderId} {
+      // Herkes sipariş oluşturabilir (yazma)
+      allow create: if true;
+      
+      // Okuma için authentication gerekli (admin paneli için)
+      allow read: if request.auth != null;
+      
+      // Güncelleme ve silme sadece authenticated kullanıcılar için
+      allow update, delete: if request.auth != null;
+    }
+    
+    // Diğer koleksiyonlar için varsayılan kurallar
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+// NOT: Eğer daha güvenli bir yapı istiyorsanız, aşağıdaki kuralları kullanabilirsiniz:
+// (Sadece belirli alanların yazılmasına izin verir)
+
+/*
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /orders/{orderId} {
+      // Sadece sipariş oluşturma izni (belirli alanlarla)
+      allow create: if request.resource.data.keys().hasAll(['name', 'address', 'phone', 'paymentMethod', 'items', 'total', 'status', 'timestamp'])
+                    && request.resource.data.name is string
+                    && request.resource.data.address is string
+                    && request.resource.data.phone is string
+                    && request.resource.data.paymentMethod is string
+                    && request.resource.data.items is list
+                    && request.resource.data.total is number
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.timestamp is number;
+      
+      allow read: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+*/

@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+import { ChevronDown, ChevronUp, Sparkles, ShoppingBag } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import OrderModal from '../components/OrderModal'
 
 // Assets'ten görselleri import et
 import makara25 from '../assets/1 (25).webp'
@@ -58,6 +60,8 @@ import malagaframbuazJpg from '../assets/malagaframbuaz.jpg'
 import mixprofiterolJpg from '../assets/mixprofiterol.jpg'
 import spangleJpg from '../assets/spangle.jpg'
 import kadayifJpg from '../assets/kadayif.jpg'
+import armutJpg from '../assets/armut.jpg'
+import elmaJpg from '../assets/elma.jpg'
 
 export default function MenuNew() {
   const [categories, setCategories] = useState([])
@@ -70,6 +74,9 @@ export default function MenuNew() {
   const [selectedProductCategory, setSelectedProductCategory] = useState(null)
   const [imagesCache, setImagesCache] = useState(null) // Tüm görselleri cache'le
   const [expandingCategories, setExpandingCategories] = useState(new Set()) // Kategori genişletme splash screen state
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false) // Online sipariş modal state
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false) // Yakında hizmetinizdeyiz modal
+  const navigate = useNavigate()
 
   // Kategorileri Firebase'den çek veya LocalStorage'dan oku
   useEffect(() => {
@@ -78,7 +85,7 @@ export default function MenuNew() {
         // Cache devre dışı - Her zaman Firebase'den anında çek
         // Yeni ürünlerin anında görünmesi için cache kaldırıldı
         
-        // Her zaman Firebase'den çek ve cache'i güncelle
+        // Her zaman Firebase'den çek
         const categoriesRef = collection(db, 'categories')
         let categoriesSnapshot
         
@@ -156,7 +163,7 @@ export default function MenuNew() {
         // Cache devre dışı - Her zaman Firebase'den anında çek
         // Yeni görsellerin anında görünmesi için cache kaldırıldı
         
-        // Her zaman Firebase'den çek ve cache'i güncelle
+        // Her zaman Firebase'den çek
         const imagesRef = collection(db, 'images')
         const imagesSnapshot = await getDocs(imagesRef)
         const imagesMap = {}
@@ -209,7 +216,7 @@ export default function MenuNew() {
         // Cache devre dışı - Her zaman Firebase'den anında çek
         // Yeni ürünlerin anında görünmesi için cache kaldırıldı
         
-        // Her zaman Firebase'den çek ve cache'i güncelle
+        // Her zaman Firebase'den çek
         // TÜM ÜRÜNLERİ TEK SEFERDE ÇEK (daha verimli)
         const productsRef = collection(db, 'products')
         const allProductsSnapshot = await getDocs(productsRef)
@@ -418,6 +425,14 @@ export default function MenuNew() {
     
     // FRANSIZ PASTALARI KATEGORİSİ
     if (categoryNameLower.includes('fransız') || categoryNameLower.includes('fransiz')) {
+      // Armut fransız pasta
+      if (productName.includes('armut')) {
+        return armutJpg
+      }
+      // Elma fransız pasta (fransiz veya fırasız yazımı)
+      if (productName.includes('elma')) {
+        return elmaJpg
+      }
       if (productName.includes('frambuaz')) {
         return frambuaz20
       }
@@ -866,22 +881,47 @@ export default function MenuNew() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-3 px-2 sm:py-4 sm:px-3 lg:py-6 lg:px-4 overflow-x-hidden w-full max-w-full">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-3 px-2 sm:py-4 sm:px-3 lg:py-6 lg:px-4 overflow-x-hidden w-full max-w-full relative">
+      {/* Sabit Online Sipariş Butonu - Mobil: Alt Ortada, Desktop: Sağ Üstte */}
+      {!isOrderModalOpen && (
+        <button
+          onClick={() => navigate('/menu/order')}
+          className="fixed z-[9999] bg-gradient-to-r from-green-600 via-emerald-600 to-green-500 text-white rounded-full shadow-2xl hover:shadow-green-500/60 active:scale-95 transition-all duration-300 flex items-center justify-center gap-2 font-semibold touch-manipulation
+            /* Mobil: Alt ortada, büyük floating button */
+            bottom-6 left-1/2 -translate-x-1/2 w-[85%] max-w-sm py-4 px-6 text-base
+            /* Desktop: Sağ üstte, kompakt */
+            sm:bottom-auto sm:top-16 sm:right-4 sm:left-auto sm:translate-x-0 sm:w-auto sm:max-w-none sm:py-3 sm:px-4 sm:text-sm
+            /* Pulse animasyon efekti */
+            animate-pulse sm:animate-none"
+          style={{ 
+            boxShadow: '0 10px 30px rgba(22, 163, 74, 0.5), 0 0 20px rgba(16, 185, 129, 0.3)',
+            position: 'fixed',
+            zIndex: 9999,
+            WebkitTapHighlightColor: 'transparent'
+          }}
+        >
+          {/* İkon container - daha belirgin */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-white/20 rounded-full blur-sm" />
+            <ShoppingBag className="w-6 h-6 sm:w-5 sm:h-5 relative z-10" strokeWidth={2.5} />
+          </div>
+          <span className="hidden sm:inline">Online Sipariş Ver</span>
+          <span className="sm:hidden font-bold tracking-wide">Online Sipariş Ver</span>
+          
+          {/* Mobil için ekstra vurgu - küçük badge */}
+          <span className="sm:hidden absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white animate-ping" />
+        </button>
+      )}
+
       <div className="max-w-7xl mx-auto w-full px-2 sm:px-3">
         {/* Başlık - Kompakt */}
-        <motion.div
-          initial={{ opacity: 0, y: -30, scale: 0.95 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center mb-3 sm:mb-4"
-        >
+        <div className="text-center mb-3 sm:mb-4">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-1 flex items-center justify-center gap-2">
             <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
             Menümüz
             <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
           </h1>
-        </motion.div>
+        </div>
 
         {/* Kategori Kartları - Kompakt Grid Layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 -mt-2 sm:-mt-3 w-full max-w-full overflow-x-hidden">
@@ -901,13 +941,7 @@ export default function MenuNew() {
               <>
                 {/* TATLILAR Bölüm Ayracı - MAKARALAR'dan önce */}
                 {isMakara && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    className="col-span-full mt-4 sm:mt-6 mb-2 sm:mb-3 w-full max-w-full overflow-x-hidden"
-                  >
+                  <div className="col-span-full mt-4 sm:mt-6 mb-2 sm:mb-3 w-full max-w-full overflow-x-hidden">
                     <div className="relative flex items-center justify-center gap-6 sm:gap-8">
                       {/* Sol Çizgi - Kalın ve Gradient */}
                       <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-pink-400/80 to-pink-500 shadow-lg"></div>
@@ -928,18 +962,12 @@ export default function MenuNew() {
                       {/* Sağ Çizgi - Kalın ve Gradient */}
                       <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-l from-transparent via-pink-400/80 to-pink-500 shadow-lg"></div>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
                 
                 {/* İÇECEKLER Bölüm Ayracı - Modern ve Profesyonel */}
                 {isHotDrinks && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    className="col-span-full mb-6 sm:mb-8 w-full max-w-full overflow-x-hidden"
-                  >
+                  <div className="col-span-full mb-6 sm:mb-8 w-full max-w-full overflow-x-hidden">
                     <div className="relative flex items-center justify-center gap-6 sm:gap-8">
                       {/* Sol Çizgi - Kalın ve Gradient */}
                       <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-pink-400/80 to-pink-500 shadow-lg"></div>
@@ -960,18 +988,10 @@ export default function MenuNew() {
                       {/* Sağ Çizgi - Kalın ve Gradient */}
                       <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-l from-transparent via-pink-400/80 to-pink-500 shadow-lg"></div>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
-              <motion.div
+              <div
                 key={category.id}
-                initial={{ opacity: 0, y: 40, scale: 0.9 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ 
-                  duration: 0.5, 
-                  delay: index * 0.05,
-                  ease: [0.22, 1, 0.36, 1]
-                }}
                 className="bg-white rounded-3xl shadow-xl hover:shadow-2xl overflow-hidden active:scale-[0.98] transition-all duration-500 border-2 border-gray-100/80 hover:border-pink-200/60 group/card backdrop-blur-sm w-full max-w-full"
               >
                 {/* Kategori Başlığı - Kompakt */}
@@ -1185,16 +1205,8 @@ export default function MenuNew() {
                           <div className="overflow-x-auto scrollbar-hide -mx-2 sm:-mx-3 px-2 sm:px-3 snap-x snap-mandatory w-full" style={{ maxWidth: '100%' }}>
                             <div className="flex gap-2 pb-1" style={{ width: 'max-content' }}>
                               {categoryProducts.map((product, productIndex) => (
-                                <motion.div
+                                <div
                                   key={product.id}
-                                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                                  viewport={{ once: true, amount: 0.2 }}
-                                  transition={{ 
-                                    duration: 0.4, 
-                                    delay: productIndex * 0.03,
-                                    ease: [0.22, 1, 0.36, 1]
-                                  }}
                                   onClick={() => {
                                     setSelectedProduct(product)
                                     setSelectedProductCategory(category.name)
@@ -1241,23 +1253,15 @@ export default function MenuNew() {
                                   )}
                                 </div>
                               </div>
-                                </motion.div>
+                                </div>
                               ))}
                             </div>
                           </div>
                         ) : (
                           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                             {categoryProducts.map((product, productIndex) => (
-                              <motion.div
+                              <div
                                 key={product.id}
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                                viewport={{ once: true, amount: 0.2 }}
-                                transition={{ 
-                                  duration: 0.4, 
-                                  delay: productIndex * 0.03,
-                                  ease: [0.22, 1, 0.36, 1]
-                                }}
                                 onClick={() => {
                                   setSelectedProduct(product)
                                   setSelectedProductCategory(category.name)
@@ -1304,7 +1308,7 @@ export default function MenuNew() {
                                     )}
                                   </div>
                                 </div>
-                              </motion.div>
+                              </div>
                             ))}
                           </div>
                         )}
@@ -1316,15 +1320,11 @@ export default function MenuNew() {
 
                 {/* Ürün Yoksa Mesaj - Kompakt */}
                 {isExpanded && categoryProducts.length === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="p-3 text-center"
-                  >
+                  <div className="p-3 text-center">
                     <p className="text-gray-500 text-xs sm:text-sm">Bu kategoride henüz ürün bulunmamaktadır.</p>
-                  </motion.div>
+                  </div>
                 )}
-              </motion.div>
+              </div>
               </>
             )
           })}
@@ -1402,6 +1402,78 @@ export default function MenuNew() {
                     </span>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Online Sipariş Modal - ŞİMDİLİK DEVRE DIŞI */}
+      {/* <OrderModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+      /> */}
+
+      {/* Yakında Hizmetinizdeyiz Modal - ŞİMDİLİK AKTİF */}
+      <AnimatePresence>
+        {showComingSoonModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowComingSoonModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden"
+            >
+              {/* İçerik */}
+              <div className="p-8 text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+                  className="mb-6 flex justify-center"
+                >
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-rose-500/20 rounded-full blur-2xl" />
+                    <ShoppingBag className="w-16 h-16 text-rose-600 relative z-10" strokeWidth={1.5} />
+                  </div>
+                </motion.div>
+
+                <motion.h2
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-2xl font-bold text-gray-900 mb-3"
+                >
+                  Yakında Hizmetinizdeyiz
+                </motion.h2>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-gray-600 mb-6 leading-relaxed"
+                >
+                  Online sipariş özelliği yakında aktif olacaktır. 
+                  Şimdilik restoranımıza gelerek siparişinizi verebilirsiniz.
+                </motion.p>
+
+                <motion.button
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  onClick={() => setShowComingSoonModal(false)}
+                  className="w-full bg-gradient-to-r from-rose-600 to-pink-600 text-white py-3 rounded-xl font-semibold hover:from-rose-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-rose-500/50 transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Tamam
+                </motion.button>
               </div>
             </motion.div>
           </motion.div>
