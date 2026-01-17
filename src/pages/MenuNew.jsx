@@ -75,24 +75,8 @@ export default function MenuNew() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        // Önce LocalStorage'dan kontrol et
-        const cachedCategories = localStorage.getItem('makara_categories')
-        const cacheTimestamp = localStorage.getItem('makara_categories_timestamp')
-        const cacheExpiry = 5 * 60 * 1000 // 5 dakika (yeni ürünlerin hızlı görünmesi için)
-        
-        if (cachedCategories && cacheTimestamp) {
-          const now = Date.now()
-          const cacheTime = parseInt(cacheTimestamp)
-          
-          // Cache hala geçerliyse önce göster
-          if (now - cacheTime < cacheExpiry) {
-            const categoriesData = JSON.parse(cachedCategories)
-            setCategories(categoriesData)
-            setLoading(false)
-            // Arka planda Firebase'den güncelle (stale-while-revalidate)
-            // Devam et, aşağıdaki kod çalışacak
-          }
-        }
+        // Cache devre dışı - Her zaman Firebase'den anında çek
+        // Yeni ürünlerin anında görünmesi için cache kaldırıldı
         
         // Her zaman Firebase'den çek ve cache'i güncelle
         const categoriesRef = collection(db, 'categories')
@@ -169,23 +153,8 @@ export default function MenuNew() {
       if (imagesCache) return // Zaten cache'lenmiş
       
       try {
-        // Önce LocalStorage'dan kontrol et
-        const cachedImages = localStorage.getItem('makara_images')
-        const cacheTimestamp = localStorage.getItem('makara_images_timestamp')
-        const cacheExpiry = 5 * 60 * 1000 // 5 dakika (yeni görsellerin hızlı görünmesi için)
-        
-        if (cachedImages && cacheTimestamp) {
-          const now = Date.now()
-          const cacheTime = parseInt(cacheTimestamp)
-          
-          // Cache hala geçerliyse önce göster
-          if (now - cacheTime < cacheExpiry) {
-            const imagesMap = JSON.parse(cachedImages)
-            setImagesCache(imagesMap)
-            // Arka planda Firebase'den güncelle (stale-while-revalidate)
-            // Devam et, aşağıdaki kod çalışacak
-          }
-        }
+        // Cache devre dışı - Her zaman Firebase'den anında çek
+        // Yeni görsellerin anında görünmesi için cache kaldırıldı
         
         // Her zaman Firebase'den çek ve cache'i güncelle
         const imagesRef = collection(db, 'images')
@@ -237,24 +206,8 @@ export default function MenuNew() {
       if (categories.length === 0) return
 
       try {
-        // Önce LocalStorage'dan kontrol et
-        const cachedProducts = localStorage.getItem('makara_products')
-        const cacheTimestamp = localStorage.getItem('makara_products_timestamp')
-        const cacheExpiry = 5 * 60 * 1000 // 5 dakika (yeni ürünlerin hızlı görünmesi için)
-        
-        // Önce cache'i göster (eğer varsa), sonra Firebase'den güncelle
-        if (cachedProducts && cacheTimestamp) {
-          const now = Date.now()
-          const cacheTime = parseInt(cacheTimestamp)
-          
-          // Cache hala geçerliyse önce göster
-          if (now - cacheTime < cacheExpiry) {
-            const productsData = JSON.parse(cachedProducts)
-            setProducts(productsData)
-            // Arka planda Firebase'den güncelle (stale-while-revalidate)
-            // Devam et, aşağıdaki kod çalışacak
-          }
-        }
+        // Cache devre dışı - Her zaman Firebase'den anında çek
+        // Yeni ürünlerin anında görünmesi için cache kaldırıldı
         
         // Her zaman Firebase'den çek ve cache'i güncelle
         // TÜM ÜRÜNLERİ TEK SEFERDE ÇEK (daha verimli)
