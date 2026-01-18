@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ShoppingCart } from 'lucide-react'
+import { X, ShoppingCart, Lock, Plus, Minus } from 'lucide-react'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import makaraWebp from '../assets/makara.webp'
@@ -59,13 +59,15 @@ import kadayifJpg from '../assets/kadayif.jpg'
 import armutJpg from '../assets/armut.jpg'
 import elmaJpg from '../assets/elma.jpg'
 
-export default function ProductSelector({ onClose, onAddToCart, cartItems }) {
+export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuantity, cartItems, isOnlineOrder = false, onlineProducts = {} }) {
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState({})
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [loading, setLoading] = useState(true)
   const [productImages, setProductImages] = useState({})
   const [imagesCache, setImagesCache] = useState(null)
+  const [selectedProductId, setSelectedProductId] = useState(null) // Seçili ürün ID'si
+  const prevCartItemsRef = useRef([]) // Önceki cartItems'ı takip et - başlangıçta boş
 
   // Kategorileri ve ürünleri yükle
   useEffect(() => {
@@ -517,9 +519,52 @@ export default function ProductSelector({ onClose, onAddToCart, cartItems }) {
     return item ? item.quantity : 0
   }
 
+  // Sepet değiştiğinde seçili ürünün miktarını kontrol et
+  // Miktar 0'a düşerse seçimi kaldır
+  useEffect(() => {
+    if (!selectedProductId) {
+      // Seçim yoksa sadece prevCartItemsRef'i güncelle
+      prevCartItemsRef.current = cartItems
+      return
+    }
+    
+    const currentItem = cartItems.find(item => item.id === selectedProductId)
+    
+    // Miktar 0'a düşerse (ürün sepette yoksa veya miktarı 0 ise) seçimi kaldır
+    if (!currentItem || currentItem.quantity === 0) {
+      setSelectedProductId(null)
+    }
+    
+    // Her zaman prevCartItemsRef'i güncelle
+    prevCartItemsRef.current = cartItems
+  }, [cartItems, selectedProductId])
+
   // Ürünü sepete ekle
   const handleAddToCart = (product) => {
     onAddToCart(product)
+  }
+
+  // Ürün miktarını artır
+  const handleIncreaseQuantity = (product) => {
+    // Seçimi koru - useEffect seçimi kaldırmasın diye
+    onAddToCart(product)
+    // Seçimi korumak için selectedProductId'yi tekrar set et
+    // Ama bu gerekli değil çünkü useEffect sadece ürün yoksa null yapıyor
+  }
+
+  // Ürün miktarını azalt
+  const handleDecreaseQuantity = (productId) => {
+    if (onDecreaseQuantity) {
+      const item = cartItems.find(item => item.id === productId)
+      const willBeZero = item && item.quantity === 1
+      
+      onDecreaseQuantity(productId)
+      
+      // Miktar 0'a düşecekse seçimi kaldır
+      if (willBeZero) {
+        setSelectedProductId(null)
+      }
+    }
   }
 
   if (loading) {
@@ -541,13 +586,19 @@ export default function ProductSelector({ onClose, onAddToCart, cartItems }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+      onClick={(e) => {
+        // Sadece backdrop'a tıklanınca kapat
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
       >
         {/* Header */}
@@ -562,13 +613,13 @@ export default function ProductSelector({ onClose, onAddToCart, cartItems }) {
         </div>
 
         {/* Kategori seçimi */}
-        <div className="p-4 border-b border-gray-200 overflow-x-auto">
-          <div className="flex gap-2">
+        <div className="p-4 border-b border-gray-200 overflow-x-auto overflow-y-hidden">
+          <div className="flex gap-2 flex-nowrap">
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                   selectedCategory === category.id
                     ? 'bg-rose-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -590,45 +641,148 @@ export default function ProductSelector({ onClose, onAddToCart, cartItems }) {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {categoryProducts.map((product) => {
                 const cartQuantity = getCartQuantity(product.id)
+                // Online sipariş modunda online fiyatı kullan
+                const onlineProduct = isOnlineOrder ? onlineProducts[product.id] : null
+                const displayPrice = isOnlineOrder && onlineProduct?.online_price 
+                  ? onlineProduct.online_price 
+                  : product.price
+                const isOutOfStock = isOnlineOrder && onlineProduct?.is_out_of_stock_online === true
+                
+                const isSelected = selectedProductId === product.id
+                
                 return (
                   <motion.div
                     key={product.id}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white rounded-xl border-2 border-gray-100 hover:border-rose-300 transition-all overflow-hidden cursor-pointer group"
-                    onClick={() => handleAddToCart(product)}
+                    className={`bg-white rounded-xl border-2 transition-all overflow-hidden group ${
+                      isOutOfStock 
+                        ? 'border-gray-200 opacity-50 cursor-not-allowed' 
+                        : isSelected
+                        ? 'border-rose-500 shadow-lg'
+                        : 'border-gray-100 hover:border-rose-300 cursor-pointer'
+                    }`}
+                    onMouseDown={(e) => {
+                      e.stopPropagation()
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      if (!isOutOfStock) {
+                        const currentQuantity = getCartQuantity(product.id)
+                        
+                        if (currentQuantity === 0) {
+                          // Ürün sepette yoksa, sepete ekle ve seç
+                          handleAddToCart(product)
+                          setSelectedProductId(product.id)
+                        } else {
+                          // Ürün sepette varsa, sadece seçimi değiştir
+                          setSelectedProductId(prev => {
+                            // Eğer aynı ürün seçiliyse seçimi kaldır, değilse seç
+                            return prev === product.id ? null : product.id
+                          })
+                        }
+                      }
+                    }}
                   >
                     {/* Ürün görseli */}
                     <div className="relative w-full aspect-square overflow-hidden bg-gray-100">
                       <img
                         src={getProductImage(product, categories.find(c => c.id === selectedCategory)?.name || '')}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className={`w-full h-full object-cover transition-transform duration-300 ${
+                          isOutOfStock ? 'grayscale brightness-50' : 'group-hover:scale-105'
+                        }`}
                         onError={(e) => {
                           if (e.target.src !== makaraWebp) {
                             e.target.src = makaraWebp
                           }
                         }}
                       />
-                      {cartQuantity > 0 && (
-                        <div className="absolute top-2 right-2 bg-rose-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
+                      {cartQuantity > 0 && !isOutOfStock && !isSelected && (
+                        <div className="absolute top-2 right-2 bg-rose-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm z-10">
                           {cartQuantity}
+                        </div>
+                      )}
+                      {isOutOfStock && (
+                        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center z-20">
+                          <Lock className="w-12 h-12 text-white mb-2" strokeWidth={1.5} />
+                          <span className="bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-bold border border-white/30">
+                            Tükendi
+                          </span>
                         </div>
                       )}
                     </div>
 
                     {/* Ürün bilgileri */}
-                    <div className="p-3">
-                      <h3 className="font-semibold text-sm text-gray-900 mb-1 line-clamp-2">
+                    <div className={`p-3 ${isOutOfStock ? 'opacity-60' : ''}`}>
+                      <h3 className={`font-semibold text-sm mb-1 line-clamp-2 ${
+                        isOutOfStock ? 'text-gray-500' : 'text-gray-900'
+                      }`}>
                         {product.name}
                       </h3>
-                      {product.price && (
-                        <p className="text-rose-600 font-bold">
-                          {typeof product.price === 'number' 
-                            ? `${product.price.toFixed(2)} ₺`
-                            : product.price
-                          }
+                      {displayPrice && !isOutOfStock && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <p className="text-rose-600 font-bold">
+                            {typeof displayPrice === 'number' 
+                              ? `${displayPrice.toFixed(2)} ₺`
+                              : displayPrice
+                            }
+                          </p>
+                          {isOnlineOrder && onlineProduct?.online_price && onlineProduct.online_price !== product.price && (
+                            <p className="text-xs text-gray-400 line-through">
+                              {typeof product.price === 'number' 
+                                ? `${product.price.toFixed(2)} ₺`
+                                : product.price
+                              }
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {isOutOfStock && (
+                        <p className="text-xs text-red-600 font-semibold mt-1">
+                          Stokta yok
                         </p>
+                      )}
+                      {/* + ve - butonları - sadece seçili ürün için */}
+                      {isSelected && !isOutOfStock && (
+                        <div className="flex items-center justify-center gap-3 mt-2 pt-2 border-t border-gray-200">
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              e.preventDefault()
+                              const item = cartItems.find(item => item.id === product.id)
+                              if (item && item.quantity > 1) {
+                                handleDecreaseQuantity(product.id)
+                              } else if (item && item.quantity === 1) {
+                                // Miktar 1 ise, azaltınca 0 olacak
+                                handleDecreaseQuantity(product.id)
+                                // handleDecreaseQuantity içinde zaten seçim kaldırılıyor
+                              }
+                            }}
+                            className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={cartQuantity === 0}
+                          >
+                            <Minus className="w-4 h-4 text-gray-700" />
+                          </button>
+                          <span className="text-lg font-bold text-gray-900 min-w-[2rem] text-center">
+                            {cartQuantity || 0}
+                          </span>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              e.preventDefault()
+                              handleIncreaseQuantity(product)
+                            }}
+                            className="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </motion.div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, Minus, Trash2, MapPin, CreditCard, Banknote, ShoppingCart, CheckCircle, Phone, Lock } from 'lucide-react'
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc, getDocs, doc, getDoc } from 'firebase/firestore'
 import { dbOnline } from '../config/firebaseOnline'
 import ProductSelector from './ProductSelector'
 import makaraWebp from '../assets/makara.webp'
@@ -21,25 +21,115 @@ export default function OrderModal({ isOpen, onClose }) {
   const [isLocationChecked, setIsLocationChecked] = useState(false)
   const [isWithinRange, setIsWithinRange] = useState(false)
   const [isCheckingLocation, setIsCheckingLocation] = useState(false)
+  const [minimumOrderAmount, setMinimumOrderAmount] = useState(0)
+  const [onlineProducts, setOnlineProducts] = useState({}) // Ürün ID'lerine göre online fiyat ve stok bilgisi
+  const [isActive, setIsActive] = useState(true) // Online sipariş aktif mi?
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true) // Settings yükleniyor mu?
   
   // Restoran koordinatları
   const RESTAURANT_LAT = 37.8623911668319
   const RESTAURANT_LNG = 32.471347381599806
   const SERVICE_RADIUS_KM = 3 // 3km yarıçap
 
+  // Firebase Online'dan settings ve products çek
+  useEffect(() => {
+    if (!isOpen) return
+
+    const fetchOnlineData = async () => {
+      try {
+        setIsLoadingSettings(true)
+        
+        // active koleksiyonundan is_active kontrolü yap
+        const activeRef = collection(dbOnline, 'active')
+        const activeSnapshot = await getDocs(activeRef)
+        
+        if (!activeSnapshot.empty) {
+          // İlk belgeyi al (genellikle tek belge olur)
+          const activeDoc = activeSnapshot.docs[0]
+          const activeData = activeDoc.data()
+          setIsActive(activeData.is_active === true)
+        } else {
+          setIsActive(false) // Belge yoksa kapalı kabul et
+        }
+        
+        // Settings'ten minimum sepet tutarını çek
+        // settings koleksiyonunda minimum_order_amount belgesi var, içinde amount alanı var
+        const settingsRef = doc(dbOnline, 'settings', 'minimum_order_amount')
+        const settingsSnap = await getDoc(settingsRef)
+        if (settingsSnap.exists()) {
+          const settingsData = settingsSnap.data()
+          setMinimumOrderAmount(settingsData.amount || 0)
+        }
+
+        // Products koleksiyonundan online fiyat ve stok bilgilerini çek
+        const productsRef = collection(dbOnline, 'products')
+        const productsSnapshot = await getDocs(productsRef)
+        const productsMap = {}
+        
+        productsSnapshot.docs.forEach(doc => {
+          const productData = doc.data()
+          productsMap[doc.id] = {
+            online_price: productData.online_price || productData.price || 0,
+            is_out_of_stock_online: productData.is_out_of_stock_online === true
+          }
+        })
+        
+        setOnlineProducts(productsMap)
+      } catch (error) {
+        console.error('Online veriler yüklenirken hata:', error)
+        setIsActive(false) // Hata durumunda kapalı kabul et
+      } finally {
+        setIsLoadingSettings(false)
+      }
+    }
+
+    fetchOnlineData()
+  }, [isOpen])
+
+  // Sepetteki ürünlerin fiyatlarını online fiyatlarla güncelle
+  useEffect(() => {
+    if (Object.keys(onlineProducts).length === 0) return
+
+    setCartItems(prev => prev.map(item => {
+      const onlineProduct = onlineProducts[item.id]
+      if (onlineProduct && onlineProduct.online_price) {
+        return { ...item, price: onlineProduct.online_price }
+      }
+      return item
+    }))
+  }, [onlineProducts])
+
   // Ürünü sepete ekle (order_index'e göre sıralı)
+  // Online fiyat ve stok kontrolü yapılıyor
   const handleAddToCart = (product) => {
+    // Online ürün bilgisini kontrol et
+    const onlineProduct = onlineProducts[product.id]
+    
+    // Stok kontrolü - is_out_of_stock_online true ise ürün tükendi
+    if (onlineProduct && onlineProduct.is_out_of_stock_online === true) {
+      alert('Bu ürün şu anda stokta bulunmamaktadır.')
+      return
+    }
+
     setCartItems(prev => {
       const existingItem = prev.find(item => item.id === product.id)
       let newItems
+      
+      // Online fiyatı kullan, yoksa normal fiyatı kullan
+      const productPrice = onlineProduct?.online_price || product.price
+      
       if (existingItem) {
         newItems = prev.map(item =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + 1, price: productPrice }
             : item
         )
       } else {
-        newItems = [...prev, { ...product, quantity: 1 }]
+        newItems = [...prev, { 
+          ...product, 
+          quantity: 1,
+          price: productPrice // Online fiyatı kullan
+        }]
       }
       // order_index'e göre sırala
       return newItems.sort((a, b) => {
@@ -69,16 +159,21 @@ export default function OrderModal({ isOpen, onClose }) {
 
   // Ürün miktarını azalt
   const handleDecreaseQuantity = (productId) => {
-    setCartItems(prev =>
-      prev.map(item => {
-        if (item.id === productId) {
-          if (item.quantity > 1) {
-            return { ...item, quantity: item.quantity - 1 }
-          }
-        }
-        return item
-      })
-    )
+    setCartItems(prev => {
+      const item = prev.find(item => item.id === productId)
+      if (item && item.quantity > 1) {
+        // Miktar 1'den fazlaysa azalt
+        return prev.map(item =>
+          item.id === productId
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        )
+      } else if (item && item.quantity === 1) {
+        // Miktar 1 ise, sepette tamamen çıkar
+        return prev.filter(item => item.id !== productId)
+      }
+      return prev
+    })
   }
 
   // Toplam fiyatı hesapla
@@ -205,6 +300,21 @@ export default function OrderModal({ isOpen, onClose }) {
       errors.push('Ödeme yöntemi seçilmelidir.')
     }
 
+    // Minimum sepet tutarı kontrolü
+    const total = calculateTotal()
+    if (minimumOrderAmount > 0 && total < minimumOrderAmount) {
+      const missingAmount = minimumOrderAmount - total
+      errors.push(`Minimum sepet tutarı ${minimumOrderAmount.toFixed(2)} ₺'dir. Sepetinize ${missingAmount.toFixed(2)} ₺ değerinde daha ürün eklemelisiniz.`)
+    }
+
+    // Stok kontrolü - sepetteki ürünlerin stokta olup olmadığını kontrol et
+    for (const item of cartItems) {
+      const onlineProduct = onlineProducts[item.id]
+      if (onlineProduct && onlineProduct.is_out_of_stock_online === true) {
+        errors.push(`${item.name} ürünü artık stokta bulunmamaktadır. Lütfen sepetten çıkarın.`)
+      }
+    }
+
     if (errors.length > 0) {
       alert(errors.join('\n'))
       return
@@ -265,6 +375,70 @@ export default function OrderModal({ isOpen, onClose }) {
 
   // Eğer modal kapalıysa ve sayfa olarak kullanılmıyorsa hiçbir şey gösterme
   if (!isOpen) return null
+
+  // Settings yükleniyorsa loading göster
+  if (isLoadingSettings) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white rounded-2xl p-8 max-w-md w-full text-center"
+        >
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Yükleniyor...</p>
+        </motion.div>
+      </motion.div>
+    )
+  }
+
+  // Online sipariş aktif değilse hizmete kapalı mesajı göster
+  if (!isActive) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
+        >
+          <div className="p-8 text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-red-500/20 rounded-full blur-2xl" />
+                <Lock className="w-16 h-16 text-red-600 relative z-10" strokeWidth={1.5} />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Online Sipariş Kapalı
+            </h2>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              Şu anda online sipariş hizmetimiz geçici olarak kapalıdır. 
+              Lütfen daha sonra tekrar deneyin veya restoranımıza gelerek siparişinizi verebilirsiniz.
+            </p>
+            <button
+              onClick={onClose}
+              className="w-full bg-rose-600 text-white py-3 rounded-xl font-semibold hover:bg-rose-700 transition-colors"
+            >
+              Tamam
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )
+  }
 
   return (
     <>
@@ -425,17 +599,26 @@ export default function OrderModal({ isOpen, onClose }) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {cartItems.map((item) => (
+                  {cartItems.map((item) => {
+                    // Online ürün bilgisini kontrol et
+                    const onlineProduct = onlineProducts[item.id]
+                    const isOutOfStock = onlineProduct?.is_out_of_stock_online === true
+                    // Online fiyatı kullan, yoksa mevcut fiyatı kullan
+                    const displayPrice = onlineProduct?.online_price || item.price
+                    
+                    return (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl"
+                      className={`flex items-center gap-3 p-3 rounded-xl ${
+                        isOutOfStock ? 'bg-red-50 border-2 border-red-200' : 'bg-gray-50'
+                      }`}
                     >
                       {/* Ürün görseli */}
                       <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
                         <img
                           src={item.image || item.imageUrl || makaraWebp}
                           alt={item.name}
-                          className="w-full h-full object-cover"
+                          className={`w-full h-full object-cover ${isOutOfStock ? 'grayscale opacity-50' : ''}`}
                           onError={(e) => {
                             if (e.target.src !== makaraWebp) {
                               e.target.src = makaraWebp
@@ -444,11 +627,20 @@ export default function OrderModal({ isOpen, onClose }) {
                         />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{item.name}</h4>
-                        <p className="text-sm text-rose-600 font-bold">
-                          {typeof item.price === 'number' 
-                            ? `${item.price.toFixed(2)} ₺`
-                            : item.price
+                        <div className="flex items-center gap-2">
+                          <h4 className={`font-semibold ${isOutOfStock ? 'text-red-600' : 'text-gray-900'}`}>
+                            {item.name}
+                          </h4>
+                          {isOutOfStock && (
+                            <span className="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-bold">
+                              Tükendi
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-sm font-bold ${isOutOfStock ? 'text-red-600' : 'text-rose-600'}`}>
+                          {typeof displayPrice === 'number' 
+                            ? `${displayPrice.toFixed(2)} ₺`
+                            : displayPrice
                           } x {item.quantity}
                         </p>
                       </div>
@@ -474,14 +666,38 @@ export default function OrderModal({ isOpen, onClose }) {
                         </button>
                       </div>
                     </div>
-                  ))}
-                  <div className="border-t border-gray-200 pt-3 mt-3">
+                    )
+                  })}
+                  <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold text-gray-900">Toplam:</span>
                       <span className="text-xl font-bold text-rose-600">
                         {calculateTotal().toFixed(2)} ₺
                       </span>
                     </div>
+                    {minimumOrderAmount > 0 && (
+                      <div className={`text-sm font-medium ${
+                        calculateTotal() >= minimumOrderAmount 
+                          ? 'text-green-600' 
+                          : 'text-red-600'
+                      }`}>
+                        {calculateTotal() >= minimumOrderAmount ? (
+                          <span className="flex items-center gap-1">
+                            <CheckCircle className="w-4 h-4" />
+                            Minimum sepet tutarı karşılandı
+                          </span>
+                        ) : (
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <p className="text-red-700 font-semibold mb-1">
+                              Minimum sepet tutarı: {minimumOrderAmount.toFixed(2)} ₺
+                            </p>
+                            <p className="text-red-600">
+                              Sepetinize <span className="font-bold">{(minimumOrderAmount - calculateTotal()).toFixed(2)} ₺</span> değerinde daha ürün eklemelisiniz.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -502,7 +718,7 @@ export default function OrderModal({ isOpen, onClose }) {
                   }`}
                 >
                   <CreditCard className="w-5 h-5" />
-                  <span className="font-medium">Kart</span>
+                  <span className="font-medium">Kapıda Kredi Kartı</span>
                 </button>
                 <button
                   onClick={() => setFormData({ ...formData, paymentMethod: 'cash' })}
@@ -540,9 +756,17 @@ export default function OrderModal({ isOpen, onClose }) {
 
           {/* Footer */}
           <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-2">
+            {/* Minimum tutar kontrolü - butonun üstünde göster */}
+            {minimumOrderAmount > 0 && calculateTotal() < minimumOrderAmount && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-2 mb-2">
+                <p className="text-xs text-red-600 text-center">
+                  Sipariş verebilmek için sepetinize <span className="font-bold">{(minimumOrderAmount - calculateTotal()).toFixed(2)} ₺</span> değerinde daha ürün eklemelisiniz.
+                </p>
+              </div>
+            )}
             <button
               onClick={handleSubmitOrder}
-              disabled={isSubmitting}
+              disabled={isSubmitting || (minimumOrderAmount > 0 && calculateTotal() < minimumOrderAmount)}
               className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-green-500/50"
             >
               {isSubmitting ? 'Gönderiliyor...' : 'Siparişi Gönder'}
@@ -560,7 +784,10 @@ export default function OrderModal({ isOpen, onClose }) {
           <ProductSelector
             onClose={() => setShowProductSelector(false)}
             onAddToCart={handleAddToCart}
+            onDecreaseQuantity={handleDecreaseQuantity}
             cartItems={cartItems}
+            isOnlineOrder={true}
+            onlineProducts={onlineProducts}
           />
         )}
       </AnimatePresence>
