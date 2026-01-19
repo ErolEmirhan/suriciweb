@@ -58,6 +58,16 @@ import spangleJpg from '../assets/spangle.jpg'
 import kadayifJpg from '../assets/kadayif.jpg'
 import armutJpg from '../assets/armut.jpg'
 import elmaJpg from '../assets/elma.jpg'
+import iceceksJpg from '../assets/iceceks.jpg'
+import rollframJpg from '../assets/rollfram.jpg'
+import rollfistikJpg from '../assets/rollfıstık.jpg'
+import rollbeyazJpg from '../assets/rollbeyaz.jpg'
+import rollklasJpg from '../assets/rollklas.jpg'
+import lotuscupJpg from '../assets/lotuscup.jpg'
+import oreocupJpg from '../assets/oreocup.jpg'
+import framwaffleJpg from '../assets/framwaffle.jpg'
+import antepkruJpg from '../assets/antepkru.jpg'
+import framkruJpg from '../assets/framkru.jpg'
 
 export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuantity, cartItems, isOnlineOrder = false, onlineProducts = {} }) {
   const [categories, setCategories] = useState([])
@@ -256,12 +266,36 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
 
   // Görselleri ürünlere eşleştir
   useEffect(() => {
-    if (!imagesCache || Object.keys(products).length === 0) return
+    if (!imagesCache || Object.keys(products).length === 0 || categories.length === 0) return
+
+    const normalizeTurkish = (str) => {
+      if (!str) return ''
+      let normalized = str.toLocaleLowerCase('tr-TR')
+      return normalized
+        .replace(/ı/g, 'i')
+        .replace(/ş/g, 's')
+        .replace(/ç/g, 'c')
+        .replace(/ğ/g, 'g')
+        .replace(/ü/g, 'u')
+        .replace(/ö/g, 'o')
+        .trim()
+    }
 
     const matchedImages = {}
     
     Object.entries(products).forEach(([categoryId, categoryProducts]) => {
+      // Kategoriyi bul
+      const category = categories.find(c => String(c.id) === String(categoryId))
+      const categoryName = category ? normalizeTurkish(category.name || '') : ''
+      const isIcecekCategory = categoryName.includes('icecek') && 
+        (categoryName.includes('sicak') || categoryName.includes('soguk'))
+      
       categoryProducts.forEach(product => {
+        // İÇECEK KATEGORİLERİ İÇİN FIREBASE GÖRSELLERİNİ HİÇ KAYDETME
+        if (isIcecekCategory) {
+          return // Bu ürün için Firebase görselini kaydetme
+        }
+        
         const productId = product.id
         const productIdStr = String(productId)
         const productIdNum = Number(productId)
@@ -291,8 +325,29 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
       })
     })
     
-    setProductImages(matchedImages)
-  }, [imagesCache, products])
+    // İÇECEK KATEGORİLERİNDEKİ ÜRÜNLERİ MEVCUT STATE'DEN DE TEMİZLE
+    const cleanedImages = {}
+    Object.keys(matchedImages).forEach(productId => {
+      const product = Object.values(products).flat().find(p => String(p.id) === String(productId))
+      if (product && product.category_id && categories.length > 0) {
+        const productCategory = categories.find(c => 
+          String(c.id) === String(product.category_id) || 
+          Number(c.id) === Number(product.category_id)
+        )
+        if (productCategory) {
+          const foundCategoryName = normalizeTurkish(productCategory.name || '')
+          if (foundCategoryName.includes('icecek') && 
+              (foundCategoryName.includes('sicak') || foundCategoryName.includes('soguk'))) {
+            // İçecek kategorisindeki ürünü atla
+            return
+          }
+        }
+      }
+      cleanedImages[productId] = matchedImages[productId]
+    })
+    
+    setProductImages(cleanedImages)
+  }, [imagesCache, products, categories])
 
   // Ürün görselini al (MenuNew'deki mantık)
   const getProductImage = (product, categoryName = '') => {
@@ -310,8 +365,34 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
         .trim()
     }
     
-    const productName = normalizeTurkish(product.name || '')
+    // İÇECEK KATEGORİLERİ İÇİN EN ÖNCELİKLİ KONTROL - HİÇBİR ŞEY KONTROL ETMEDEN ÖNCE
+    // Basitleştirilmiş kontrol: Sadece "icecek" kelimesini kontrol et
+    const checkIfIcecek = (catName) => {
+      if (!catName) return false
+      const normalized = normalizeTurkish(catName)
+      // "icecek" kelimesi varsa ve "sicak" veya "soguk" varsa
+      return normalized.includes('icecek') && 
+             (normalized.includes('sicak') || normalized.includes('soguk'))
+    }
+    
+    // Önce kategori adı ile kontrol et
     const categoryNameLower = normalizeTurkish(categoryName || '')
+    if (checkIfIcecek(categoryName)) {
+      return iceceksJpg // Direkt döndür, hiçbir şey kontrol etme
+    }
+    
+    // Ürünün category_id'sini kullanarak kategoriyi bul
+    if (product.category_id && categories.length > 0) {
+      const productCategory = categories.find(c => 
+        String(c.id) === String(product.category_id) || 
+        Number(c.id) === Number(product.category_id)
+      )
+      if (productCategory && checkIfIcecek(productCategory.name)) {
+        return iceceksJpg // Direkt döndür, hiçbir şey kontrol etme
+      }
+    }
+    
+    const productName = normalizeTurkish(product.name || '')
     
     // Assets'ten görselleri kontrol et (öncelikli)
     // MAKARALAR KATEGORİSİ
@@ -393,6 +474,42 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
     
     // KRUVASANLAR KATEGORİSİ
     if (categoryNameLower.includes('kruvasan')) {
+      // Antep Fıstıklı Roll Kruvasan
+      if ((productName.includes('antep') || productName.includes('antep')) && 
+          (productName.includes('fistikli') || productName.includes('fıstıklı') || 
+           productName.includes('fistik') || productName.includes('fıstık')) && 
+          productName.includes('roll')) {
+        return rollfistikJpg
+      }
+      // Frambuazlı-Çilekli Roll Kruvasan
+      if ((productName.includes('frambuazli') || productName.includes('frambuazlı')) && 
+          (productName.includes('cilekli') || productName.includes('çilekli')) && 
+          productName.includes('roll')) {
+        return rollframJpg
+      }
+      // Oreo Roll Kruvasan
+      if ((productName.includes('oreo') || productName.includes('oreolu')) && 
+          productName.includes('roll')) {
+        return rollbeyazJpg
+      }
+      // Sade Roll Kruvasan
+      if ((productName.includes('sade') || productName.includes('sade')) && 
+          productName.includes('roll')) {
+        return rollklasJpg
+      }
+      // Antep Fıstıklı Kruvasan (roll olmayan)
+      if ((productName.includes('antep') || productName.includes('antep')) && 
+          (productName.includes('fistikli') || productName.includes('fıstıklı') || 
+           productName.includes('fistik') || productName.includes('fıstık')) && 
+          !productName.includes('roll')) {
+        return antepkruJpg
+      }
+      // Frambuazlı-Çilekli Kruvasan (roll olmayan)
+      if ((productName.includes('frambuazli') || productName.includes('frambuazlı')) && 
+          (productName.includes('cilekli') || productName.includes('çilekli')) && 
+          !productName.includes('roll')) {
+        return framkruJpg
+      }
       return kruvasan26
     }
     
@@ -424,6 +541,14 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
       }
       if (productName.includes('tiramisu')) {
         return tiramisuJpeg
+      }
+      // Lotus Cup
+      if (productName.includes('lotus') && productName.includes('cup')) {
+        return lotuscupJpg
+      }
+      // Oreo Cup
+      if ((productName.includes('oreo') || productName.includes('oreolu')) && productName.includes('cup')) {
+        return oreocupJpg
       }
       if (productName.includes('antep fistikli cup') || (productName.includes('cup') && productName.includes('antep'))) {
         return fistikcupJpeg
@@ -465,6 +590,12 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
     
     // WAFFLE KATEGORİSİ
     if (categoryNameLower.includes('waffle')) {
+      // Frambuaz-Çilek Klasik Waffle
+      if ((productName.includes('frambuaz') || productName.includes('frambuaz')) && 
+          (productName.includes('cilek') || productName.includes('çilek')) && 
+          productName.includes('klasik')) {
+        return framwaffleJpg
+      }
       if (productName.includes('bardak') && productName.includes('waffle')) {
         return bardakJpg
       }
@@ -486,8 +617,43 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
       return frozenJpg
     }
     
-    // Firebase'den cache'lenmiş görseli kontrol et
+    // İÇECEK KATEGORİLERİ İÇİN TEKRAR KONTROL - Firebase görsellerini kesinlikle atla
+    // Bu kontrol her Firebase görseli kontrolünden ÖNCE yapılmalı
+    const checkIcecekCategory = () => {
+      const checkIfIcecek = (catName) => {
+        if (!catName) return false
+        const normalized = normalizeTurkish(catName)
+        return normalized.includes('icecek') && 
+               (normalized.includes('sicak') || normalized.includes('soguk'))
+      }
+      
+      if (checkIfIcecek(categoryName)) {
+        return true
+      }
+      
+      if (product.category_id && categories.length > 0) {
+        const productCategory = categories.find(c => 
+          String(c.id) === String(product.category_id) || 
+          Number(c.id) === Number(product.category_id)
+        )
+        if (productCategory && checkIfIcecek(productCategory.name)) {
+          return true
+        }
+      }
+      return false
+    }
+    
+    // İçecek kategorisindeyse, Firebase görsellerini TAMAMEN ATLA
+    if (checkIcecekCategory()) {
+      return iceceksJpg
+    }
+    
+    // Firebase'den cache'lenmiş görseli kontrol et (içecek kategorileri zaten en başta return edildi)
     if (productImages[product.id]) {
+      // Tekrar kontrol et - içecek kategorisindeyse atla
+      if (checkIcecekCategory()) {
+        return iceceksJpg
+      }
       const cachedImage = productImages[product.id]
       if (typeof cachedImage === 'string' && cachedImage.includes('unsplash.com')) {
         return makaraWebp
@@ -497,12 +663,20 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
     
     // Ürünün kendi image alanını kontrol et
     if (product.image) {
+      // Tekrar kontrol et - içecek kategorisindeyse atla
+      if (checkIcecekCategory()) {
+        return iceceksJpg
+      }
       if (typeof product.image === 'string' && product.image.includes('unsplash.com')) {
         return makaraWebp
       }
       return product.image
     }
     if (product.imageUrl) {
+      // Tekrar kontrol et - içecek kategorisindeyse atla
+      if (checkIcecekCategory()) {
+        return iceceksJpg
+      }
       if (typeof product.imageUrl === 'string' && product.imageUrl.includes('unsplash.com')) {
         return makaraWebp
       }

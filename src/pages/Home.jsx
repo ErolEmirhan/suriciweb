@@ -156,11 +156,12 @@ export default function Home() {
                Gerçek Belçika çikolatasıyla buluşan zarif lezzetler.
              </p>
 
-            {/* CTA Button - Minimal & Sophisticated */}
+            {/* CTA Buttons - Minimal & Sophisticated */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex flex-col items-center gap-4"
             >
                <Link 
                  to="/menu" 
@@ -180,6 +181,36 @@ export default function Home() {
                  <span className="relative z-10">Menümüzü Keşfedin</span>
                  <ArrowRight className="w-5 h-5 relative z-10 group-hover:translate-x-2 transition-transform duration-500" />
                </Link>
+
+               {/* Online Sipariş Ver Button - Elite & Professional */}
+               <motion.div
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ duration: 0.8, delay: 0.8 }}
+               >
+                 <Link 
+                   to="/menu/order" 
+                   className="group relative inline-flex items-center gap-3 px-10 py-4 text-sm md:text-base tracking-[0.15em] uppercase font-semibold text-white overflow-hidden transition-all duration-500 hover:scale-[1.02] border-2 border-white/30 hover:border-white/60 backdrop-blur-sm"
+                   style={{ 
+                     background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.15) 100%)',
+                     boxShadow: '0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1) inset',
+                     textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+                   }}
+                 >
+                   {/* Elegant Shine Effect */}
+                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
+                   
+                   {/* Subtle Glow on Hover */}
+                   <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-all duration-500" />
+                   
+                   {/* Premium Badge Icon */}
+                   <div className="relative z-10 w-5 h-5 border-2 border-white/60 rounded-sm flex items-center justify-center group-hover:border-white transition-colors duration-300">
+                     <div className="w-2 h-2 bg-white/80 rounded-sm group-hover:bg-white transition-colors duration-300" />
+                   </div>
+                   
+                   <span className="relative z-10 font-medium">Online Sipariş Ver</span>
+                 </Link>
+               </motion.div>
             </motion.div>
           </motion.div>
         </div>
