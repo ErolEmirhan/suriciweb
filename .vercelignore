@@ -1,0 +1,4 @@
+# Python / opencv – sadece yerel QR script'leri için, Vercel build'ine gerek yok
+requirements.txt
+verify_qr.py
+verify_www_qr.py
