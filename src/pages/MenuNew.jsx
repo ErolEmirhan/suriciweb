@@ -72,6 +72,7 @@ import oreocupJpg from '../assets/oreocup.jpg'
 import framwaffleJpg from '../assets/framwaffle.jpg'
 import antepkruJpg from '../assets/antepkru.jpg'
 import framkruJpg from '../assets/framkru.jpg'
+import v60Jpg from '../assets/V60.jpg'
 
 export default function MenuNew() {
   const [categories, setCategories] = useState([])
@@ -259,11 +260,37 @@ export default function MenuNew() {
           
           // order_index veya order alanına göre sırala
           categoryProducts.sort((a, b) => {
+            // Sıcak İçecekler kategorisindeyse V60 ile başlayanlar en başta
+            const categoryNameLower = (category.name || '').toLocaleLowerCase('tr-TR').trim()
+            if (categoryNameLower.includes('sıcak') && categoryNameLower.includes('içecek')) {
+              const aNameLower = (a.name || '').toLocaleLowerCase('tr-TR').trim()
+              const bNameLower = (b.name || '').toLocaleLowerCase('tr-TR').trim()
+              const aIsV60 = aNameLower.startsWith('v60')
+              const bIsV60 = bNameLower.startsWith('v60')
+              
+              // V60'lar en başta
+              if (aIsV60 && !bIsV60) return -1
+              if (!aIsV60 && bIsV60) return 1
+            }
+            
             const aOrder = a.order_index ?? a.order ?? 999
             const bOrder = b.order_index ?? b.order ?? 999
             if (aOrder !== bOrder) return aOrder - bOrder
             return (a.name || '').localeCompare(b.name || '', 'tr')
           })
+          
+          // Sıcak İçecekler kategorisinde V60 kontrolü - Debug
+          if ((category.name || '').toLocaleLowerCase('tr-TR').includes('sıcak') && 
+              (category.name || '').toLocaleLowerCase('tr-TR').includes('içecek')) {
+            const v60Products = categoryProducts.filter(p => 
+              (p.name || '').toLocaleLowerCase('tr-TR').startsWith('v60')
+            )
+            console.log(`🔍 Sıcak İçecekler - V60 ürün sayısı: ${v60Products.length}`)
+            if (v60Products.length > 0) {
+              console.log('📌 V60 Ürünleri:', v60Products.map(p => p.name))
+              console.log('📌 İlk 5 ürün:', categoryProducts.slice(0, 5).map(p => p.name))
+            }
+          }
           
           console.log(`📁 ${category.name} kategorisinde ${categoryProducts.length} ürün bulundu`)
           productsData[categoryId] = categoryProducts
@@ -431,6 +458,11 @@ export default function MenuNew() {
     
     // Kategori adı ile kontrol et
     if (checkIfIcecek(categoryName)) {
+      // Sıcak içeceklerde V60 ile başlayanlar için özel görsel
+      if (categoryName && normalizeTurkish(categoryName).includes('sicak') && 
+          productName.startsWith('v60')) {
+        return v60Jpg
+      }
       return iceceksJpg // Direkt döndür, hiçbir şey kontrol etme
     }
     
@@ -441,6 +473,11 @@ export default function MenuNew() {
         Number(c.id) === Number(product.category_id)
       )
       if (productCategory && checkIfIcecek(productCategory.name)) {
+        // Sıcak içeceklerde V60 ile başlayanlar için özel görsel
+        if (normalizeTurkish(productCategory.name).includes('sicak') && 
+            productName.startsWith('v60')) {
+          return v60Jpg
+        }
         return iceceksJpg // Direkt döndür, hiçbir şey kontrol etme
       }
     }
