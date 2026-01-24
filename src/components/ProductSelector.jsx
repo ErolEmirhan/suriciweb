@@ -896,21 +896,13 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
                         {product.name}
                       </h3>
                       {displayPrice && !isOutOfStock && (
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="mb-2">
                           <p className="text-rose-600 font-bold">
                             {typeof displayPrice === 'number' 
                               ? `${displayPrice.toFixed(2)} ₺`
                               : displayPrice
                             }
                           </p>
-                          {isOnlineOrder && onlineProduct?.online_price && onlineProduct.online_price !== product.price && (
-                            <p className="text-xs text-gray-400 line-through">
-                              {typeof product.price === 'number' 
-                                ? `${product.price.toFixed(2)} ₺`
-                                : product.price
-                              }
-                            </p>
-                          )}
                         </div>
                       )}
                       {isOutOfStock && (

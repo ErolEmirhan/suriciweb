@@ -1,10 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, Minus, Trash2, MapPin, CreditCard, Banknote, ShoppingCart, CheckCircle, Phone, Lock } from 'lucide-react'
+import { X, Plus, Minus, Trash2, MapPin, CreditCard, Banknote, ShoppingCart, CheckCircle, Phone, Lock, Search, Navigation } from 'lucide-react'
+import { LoadScript, Autocomplete } from '@react-google-maps/api'
 import { collection, addDoc, getDocs, doc, getDoc } from 'firebase/firestore'
 import { dbOnline } from '../config/firebaseOnline'
 import ProductSelector from './ProductSelector'
+import LocationMapModal from './LocationMapModal'
 import makaraWebp from '../assets/makara.webp'
+
+const GOOGLE_MAPS_API_KEY = 'AIzaSyBOAUUi6M_1eqBrCqeOTN0ZXvGkCOG7VDc'
+
+// Konya sınırları – adres aramada sadece Konya çıksın (elitkent sitesi → Konya, İstanbul değil)
+const KONYA_BOUNDS = {
+  north: 38.15,
+  south: 37.50,
+  east: 32.85,
+  west: 32.15
+}
 
 export default function OrderModal({ isOpen, onClose }) {
   const [showProductSelector, setShowProductSelector] = useState(false)
@@ -13,23 +25,27 @@ export default function OrderModal({ isOpen, onClose }) {
     name: '',
     address: '',
     phone: '',
-    paymentMethod: '', // 'card' or 'cash'
-    note: '' // Opsiyonel not
+    paymentMethod: '',
+    note: '',
+    deliveryInstructions: '' // Adres tarifi (kapı, bina, kat, yol tarifi)
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
-  const [isLocationChecked, setIsLocationChecked] = useState(false)
+  const [selectedLocation, setSelectedLocation] = useState(null)
   const [isWithinRange, setIsWithinRange] = useState(false)
-  const [isCheckingLocation, setIsCheckingLocation] = useState(false)
+  const [showLocationMapModal, setShowLocationMapModal] = useState(false)
+  const [mapModalInitialCoords, setMapModalInitialCoords] = useState(null)
+  const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false)
+  const autocompleteRef = useRef(null)
   const [minimumOrderAmount, setMinimumOrderAmount] = useState(0)
   const [onlineProducts, setOnlineProducts] = useState({}) // Ürün ID'lerine göre online fiyat ve stok bilgisi
   const [isActive, setIsActive] = useState(true) // Online sipariş aktif mi?
   const [isLoadingSettings, setIsLoadingSettings] = useState(true) // Settings yükleniyor mu?
   
   // Restoran koordinatları
-  const RESTAURANT_LAT = 37.8623911668319
-  const RESTAURANT_LNG = 32.471347381599806
-  const SERVICE_RADIUS_KM = 3 // 3km yarıçap
+  const RESTAURANT_LAT = 37.86225866037972
+  const RESTAURANT_LNG = 32.47138873014679
+  const SERVICE_RADIUS_KM = 7 // 7km yarıçap
 
   // Firebase Online'dan settings ve products çek
   useEffect(() => {
@@ -184,112 +200,75 @@ export default function OrderModal({ isOpen, onClose }) {
     }, 0)
   }
 
-  // İki koordinat arasındaki mesafeyi hesapla (Haversine formülü)
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371 // Dünya yarıçapı (km)
-    const dLat = (lat2 - lat1) * Math.PI / 180
-    const dLon = (lon2 - lon1) * Math.PI / 180
-    const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    return R * c // Mesafe (km)
+  const handleLocationConfirm = (location) => {
+    setSelectedLocation(location)
+    setIsWithinRange(location.withinRange)
+    setFormData(prev => ({ ...prev, address: location.address || prev.address }))
+    setShowLocationMapModal(false)
   }
 
-  // Konum kontrolü yap
-  const checkLocation = async () => {
-    setIsCheckingLocation(true)
-    
-    try {
-      // Konum izni kontrolü
-      if (!navigator.geolocation) {
-        alert('Tarayıcınız konum servisini desteklemiyor.')
-        setIsCheckingLocation(false)
-        return false
-      }
+  const handlePlaceSelect = () => {
+    const ac = autocompleteRef.current
+    if (!ac) return
+    const place = ac.getPlace()
+    if (!place?.geometry?.location) return
+    const lat = place.geometry.location.lat()
+    const lng = place.geometry.location.lng()
+    const address = place.formatted_address || place.name || ''
+    setFormData(prev => ({ ...prev, address: address || prev.address }))
+    setMapModalInitialCoords({ lat, lng })
+    setShowLocationMapModal(true)
+  }
 
-      // Konum al
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        })
-      })
-
-      const userLat = position.coords.latitude
-      const userLng = position.coords.longitude
-
-      // Mesafeyi hesapla
-      const distance = calculateDistance(
-        RESTAURANT_LAT,
-        RESTAURANT_LNG,
-        userLat,
-        userLng
-      )
-
-      console.log('Kullanıcı konumu:', { lat: userLat, lng: userLng })
-      console.log('Restoran konumu:', { lat: RESTAURANT_LAT, lng: RESTAURANT_LNG })
-      console.log('Mesafe:', distance.toFixed(2), 'km')
-
-      // 3km içinde mi kontrol et
-      const withinRange = distance <= SERVICE_RADIUS_KM
-      setIsWithinRange(withinRange)
-      setIsLocationChecked(true)
-      setIsCheckingLocation(false)
-
-      return withinRange
-    } catch (error) {
-      console.error('Konum hatası:', error)
-      setIsCheckingLocation(false)
-      
-      if (error.code === error.PERMISSION_DENIED) {
-        alert('Konum izni gereklidir. Lütfen tarayıcı ayarlarınızdan konum iznini açın.')
-      } else if (error.code === error.POSITION_UNAVAILABLE) {
-        alert('Konum bilgisi alınamadı. Lütfen konum servisinizin açık olduğundan emin olun.')
-      } else {
-        alert('Konum kontrolü yapılamadı. Lütfen tekrar deneyin.')
-      }
-      
-      return false
+  const handleUseCurrentLocation = () => {
+    setIsGettingCurrentLocation(true)
+    if (!navigator.geolocation) {
+      alert('Tarayıcınız konum servisini desteklemiyor.')
+      setIsGettingCurrentLocation(false)
+      return
     }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude
+        const lng = pos.coords.longitude
+        setMapModalInitialCoords({ lat, lng })
+        setShowLocationMapModal(true)
+        setIsGettingCurrentLocation(false)
+      },
+      (err) => {
+        setIsGettingCurrentLocation(false)
+        if (err.code === err.PERMISSION_DENIED) {
+          alert('Konum izni gereklidir. Lütfen tarayıcı ayarlarınızdan konum iznini açın.')
+        } else {
+          alert('Konum alınamadı. Lütfen adres araması veya haritadan seçim yapın.')
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
   }
 
-  // KONUM KONTROLÜ ŞİMDİLİK DEVRE DIŞI
-  // Modal kapandığında state'i sıfırla
-  // useEffect(() => {
-  //   if (!isOpen) {
-  //     setIsLocationChecked(false)
-  //     setIsWithinRange(false)
-  //     setIsCheckingLocation(false)
-  //   }
-  // }, [isOpen])
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedLocation(null)
+      setIsWithinRange(false)
+      setShowLocationMapModal(false)
+      setMapModalInitialCoords(null)
+    }
+  }, [isOpen])
 
-  // Siparişi gönder
   const handleSubmitOrder = async () => {
-    // KONUM KONTROLÜ ŞİMDİLİK DEVRE DIŞI - SONRA AKTİF EDİLECEK
-    // Önce konum kontrolü yap (sadece butona basıldığında)
-    // if (!isLocationChecked) {
-    //   const withinRange = await checkLocation()
-    //   if (!withinRange) {
-    //     // Menzil dışındaysa işlemi durdur
-    //     return
-    //   }
-    // } else if (!isWithinRange) {
-    //   // Konum kontrolü yapıldıysa ve menzil dışındaysa
-    //   return
-    // }
+    if (!selectedLocation) {
+      alert('Lütfen teslimat adresi seçin. Adres araması yapıp haritadan onaylayın veya "Mevcut konumu kullan" butonunu kullanın.')
+      return
+    }
+    if (!isWithinRange) {
+      alert('Üzgünüz, seçtiğiniz adres hizmet alanımızın dışındadır. (Maksimum teslimat: 7 km – kuş uçumu)')
+      return
+    }
 
-    // Form validasyonu - daha sıkı kontrol
     const errors = []
-    
-    if (!formData.name || !formData.name.trim()) {
-      errors.push('İsim soyisim zorunludur.')
-    }
-    if (!formData.address || !formData.address.trim()) {
-      errors.push('Adres zorunludur.')
-    }
+    if (!formData.name?.trim()) errors.push('İsim soyisim zorunludur.')
+    if (!formData.address?.trim()) errors.push('Teslimat adresi zorunludur.')
     if (!formData.phone || !formData.phone.trim()) {
       errors.push('Telefon numarası zorunludur.')
     }
@@ -323,12 +302,20 @@ export default function OrderModal({ isOpen, onClose }) {
     setIsSubmitting(true)
 
     try {
+      const adresTarifi = formData.deliveryInstructions?.trim() || ''
+      const adres = [formData.address.trim(), adresTarifi].filter(Boolean).join(' | ')
+
       const orderData = {
         name: formData.name.trim(),
-        address: formData.address.trim(),
+        address: adres,
         phone: formData.phone.trim(),
         paymentMethod: formData.paymentMethod,
-        note: formData.note.trim() || null, // Not varsa kaydet, yoksa null
+        note: formData.note.trim() || null,
+        location: {
+          lat: selectedLocation.lat,
+          lng: selectedLocation.lng,
+          distance: selectedLocation.distance
+        },
         items: cartItems.map(item => ({
           id: item.id,
           name: item.name,
@@ -348,13 +335,13 @@ export default function OrderModal({ isOpen, onClose }) {
       const docRef = await addDoc(collection(dbOnline, 'orders'), orderData)
       console.log('Sipariş başarıyla kaydedildi:', docRef.id)
 
-      // Formu temizle
       setFormData({
         name: '',
         address: '',
         phone: '',
         paymentMethod: '',
-        note: ''
+        note: '',
+        deliveryInstructions: ''
       })
       setCartItems([])
       setIsSubmitting(false)
@@ -442,6 +429,8 @@ export default function OrderModal({ isOpen, onClose }) {
 
   return (
     <>
+      <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY} libraries={['places']}>
+        <>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -456,66 +445,6 @@ export default function OrderModal({ isOpen, onClose }) {
         onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl relative"
       >
-        {/* KONUM KONTROLÜ ŞİMDİLİK DEVRE DIŞI */}
-        {/* Konum kontrolü yapıldıysa ve menzil dışındaysa overlay göster */}
-        {/* {isLocationChecked && !isWithinRange && (
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center rounded-2xl">
-            <div className="absolute inset-0 bg-white/20 backdrop-blur-sm rounded-2xl" />
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-              className="text-center px-6 relative z-10"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-                className="mb-6 flex justify-center"
-              >
-                <div className="relative">
-                  <div className="absolute inset-0 bg-red-500/20 rounded-full blur-2xl" />
-                  <Lock className="w-24 h-24 text-red-600 relative z-10" strokeWidth={1.5} />
-                </div>
-              </motion.div>
-              <motion.h3
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-2xl font-bold text-red-600 mb-3"
-              >
-                Üzgünüz
-              </motion.h3>
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-lg text-red-500 font-medium mb-2"
-              >
-                Adresinize hizmet vermiyoruz
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-sm text-gray-300 max-w-md mx-auto leading-relaxed"
-              >
-                Şu anda sadece restoranımızın 3 km yarıçapındaki bölgelere hizmet verebiliyoruz. 
-                Lütfen daha sonra tekrar deneyin veya restoranımıza gelerek siparişinizi verebilirsiniz.
-              </motion.p>
-            </motion.div>
-          </div>
-        )} */}
-
-        {/* Konum kontrol ediliyor */}
-        {/* {isCheckingLocation && (
-          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-40 flex items-center justify-center rounded-2xl">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-              <p className="text-gray-600 font-medium">Konumunuz kontrol ediliyor...</p>
-            </div>
-          </div>
-        )} */}
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-rose-50 to-pink-50">
             <h2 className="text-2xl font-bold text-gray-900">Online Sipariş</h2>
@@ -545,19 +474,75 @@ export default function OrderModal({ isOpen, onClose }) {
                 />
               </div>
 
-              {/* Adres */}
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              {/* Teslimat Adresi */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700">
                   <MapPin className="w-4 h-4 inline mr-1" />
-                  Adres *
+                  Teslimat Adresi *
                 </label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                  placeholder="Adresinizi giriniz veya haritadan seçiniz"
-                />
+
+                <Autocomplete
+                  onLoad={(ac) => { autocompleteRef.current = ac }}
+                  onPlaceChanged={handlePlaceSelect}
+                  options={{
+                    bounds: KONYA_BOUNDS,
+                    strictBounds: true,
+                    componentRestrictions: { country: 'tr' },
+                    fields: ['geometry', 'name', 'formatted_address']
+                  }}
+                >
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Adres veya yer ara..."
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    />
+                  </div>
+                </Autocomplete>
+
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  disabled={isGettingCurrentLocation}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl font-medium hover:border-slate-300 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Navigation className={`w-5 h-5 ${isGettingCurrentLocation ? 'animate-spin' : ''}`} />
+                  {isGettingCurrentLocation ? 'Konum alınıyor...' : 'Mevcut konumu kullan'}
+                </button>
+
+                {selectedLocation && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50 shadow-sm">
+                    <div className="flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
+                      <CheckCircle className="w-5 h-5" strokeWidth={2.5} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 mb-0.5">Seçilen konum</p>
+                      <p className="text-sm font-medium text-slate-800 leading-snug">{formData.address || 'Adres seçildi'}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMapModalInitialCoords({ lat: selectedLocation.lat, lng: selectedLocation.lng })
+                        setShowLocationMapModal(true)
+                      }}
+                      className="flex-shrink-0 py-2 px-3.5 text-sm font-semibold text-emerald-700 bg-white border border-emerald-300 rounded-lg hover:bg-emerald-50 hover:border-emerald-400 transition-colors"
+                    >
+                      Değiştir
+                    </button>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Adres tarifi</label>
+                  <textarea
+                    value={formData.deliveryInstructions}
+                    onChange={(e) => setFormData({ ...formData, deliveryInstructions: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
+                    placeholder="Kapı kodu, bina no, kat, yol tarifi vb. (opsiyonel)"
+                    rows={2}
+                  />
+                </div>
               </div>
 
               {/* Telefon */}
@@ -583,8 +568,15 @@ export default function OrderModal({ isOpen, onClose }) {
                   Sepet
                 </h3>
                 <button
-                  onClick={() => setShowProductSelector(true)}
-                  className="px-4 py-2 bg-rose-600 text-white rounded-xl font-medium hover:bg-rose-700 transition-colors flex items-center gap-2"
+                  onClick={() => {
+                    if (!selectedLocation) {
+                      alert('Lütfen önce teslimat adresi seçin. Adres arayıp haritadan onaylayın veya "Mevcut konumu kullan"ı deneyin.')
+                      return
+                    }
+                    setShowProductSelector(true)
+                  }}
+                  disabled={!selectedLocation}
+                  className="px-4 py-2 bg-rose-600 text-white rounded-xl font-medium hover:bg-rose-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Plus className="w-4 h-4" />
                   Ürün Ekle
@@ -764,9 +756,29 @@ export default function OrderModal({ isOpen, onClose }) {
                 </p>
               </div>
             )}
+            {!selectedLocation && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2">
+                <p className="text-xs text-amber-800 text-center">
+                  Teslimat adresi seçin: arama yapıp haritadan onaylayın veya "Mevcut konumu kullan" deyin.
+                </p>
+              </div>
+            )}
+            {selectedLocation && !isWithinRange && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
+                <p className="text-xs text-red-800 text-center font-medium">
+                  Seçtiğiniz adres 7 km sınırının dışında; sipariş tamamlanamaz.
+                </p>
+              </div>
+            )}
+            
             <button
               onClick={handleSubmitOrder}
-              disabled={isSubmitting || (minimumOrderAmount > 0 && calculateTotal() < minimumOrderAmount)}
+              disabled={
+                isSubmitting || 
+                (minimumOrderAmount > 0 && calculateTotal() < minimumOrderAmount) ||
+                !selectedLocation ||
+                !isWithinRange
+              }
               className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-green-500/50"
             >
               {isSubmitting ? 'Gönderiliyor...' : 'Siparişi Gönder'}
@@ -777,6 +789,15 @@ export default function OrderModal({ isOpen, onClose }) {
           </div>
         </motion.div>
       </motion.div>
+
+          <LocationMapModal
+            isOpen={showLocationMapModal}
+            onClose={() => setShowLocationMapModal(false)}
+            onConfirm={handleLocationConfirm}
+            initialCoords={mapModalInitialCoords}
+          />
+        </>
+      </LoadScript>
 
       {/* Ürün Seçici Modal */}
       <AnimatePresence>
