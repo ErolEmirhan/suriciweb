@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Plus, Minus, Trash2, MapPin, CreditCard, Banknote, ShoppingCart, CheckCircle, Phone, Lock, Search, Navigation } from 'lucide-react'
+import { X, Plus, Minus, Trash2, MapPin, CreditCard, Banknote, ShoppingCart, CheckCircle, Phone, Lock, Search, Navigation, Package } from 'lucide-react'
 import { LoadScript, Autocomplete } from '@react-google-maps/api'
 import { collection, addDoc, getDocs, doc, getDoc } from 'firebase/firestore'
 import { dbOnline } from '../config/firebaseOnline'
@@ -102,23 +102,11 @@ export default function OrderModal({ isOpen, onClose }) {
     fetchOnlineData()
   }, [isOpen])
 
-  // Sepetteki ürünlerin fiyatlarını online fiyatlarla güncelle
-  useEffect(() => {
-    if (Object.keys(onlineProducts).length === 0) return
+  // Paket servis ücreti (online siparişte sepette menü fiyatları + bu ücret)
+  const PAKET_SERVIS_UCRETI = 100
 
-    setCartItems(prev => prev.map(item => {
-      const onlineProduct = onlineProducts[item.id]
-      if (onlineProduct && onlineProduct.online_price) {
-        return { ...item, price: onlineProduct.online_price }
-      }
-      return item
-    }))
-  }, [onlineProducts])
-
-  // Ürünü sepete ekle (order_index'e göre sıralı)
-  // Online fiyat ve stok kontrolü yapılıyor
+  // Ürünü sepete ekle (order_index'e göre sıralı) – menü fiyatları kullanılır, online özel fiyat yok
   const handleAddToCart = (product) => {
-    // Online ürün bilgisini kontrol et
     const onlineProduct = onlineProducts[product.id]
     
     // Stok kontrolü - is_out_of_stock_online true ise ürün tükendi
@@ -131,8 +119,8 @@ export default function OrderModal({ isOpen, onClose }) {
       const existingItem = prev.find(item => item.id === product.id)
       let newItems
       
-      // Online fiyatı kullan, yoksa normal fiyatı kullan
-      const productPrice = onlineProduct?.online_price || product.price
+      // Menü fiyatı (product.price) – online özel fiyat kullanılmıyor
+      const productPrice = product.price
       
       if (existingItem) {
         newItems = prev.map(item =>
@@ -144,7 +132,7 @@ export default function OrderModal({ isOpen, onClose }) {
         newItems = [...prev, { 
           ...product, 
           quantity: 1,
-          price: productPrice // Online fiyatı kullan
+          price: productPrice // Menü fiyatı (product.price)
         }]
       }
       // order_index'e göre sırala
@@ -323,7 +311,9 @@ export default function OrderModal({ isOpen, onClose }) {
           quantity: item.quantity,
           image: item.image || item.imageUrl || null
         })),
-        total: calculateTotal(),
+        subtotal: calculateTotal(),
+        paket_servis_ucreti: PAKET_SERVIS_UCRETI,
+        total: calculateTotal() + PAKET_SERVIS_UCRETI,
         status: 'pending',
         createdAt: new Date(),
         timestamp: Date.now()
@@ -592,11 +582,10 @@ export default function OrderModal({ isOpen, onClose }) {
               ) : (
                 <div className="space-y-3">
                   {cartItems.map((item) => {
-                    // Online ürün bilgisini kontrol et
                     const onlineProduct = onlineProducts[item.id]
                     const isOutOfStock = onlineProduct?.is_out_of_stock_online === true
-                    // Online fiyatı kullan, yoksa mevcut fiyatı kullan
-                    const displayPrice = onlineProduct?.online_price || item.price
+                    // Menü fiyatı (online özel fiyat yok)
+                    const displayPrice = item.price
                     
                     return (
                     <div
@@ -660,11 +649,25 @@ export default function OrderModal({ isOpen, onClose }) {
                     </div>
                     )
                   })}
-                  <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-semibold text-gray-900">Toplam:</span>
-                      <span className="text-xl font-bold text-rose-600">
-                        {calculateTotal().toFixed(2)} ₺
+                  <div className="border-t border-slate-200 pt-4 mt-4 space-y-3">
+                    <div className="flex justify-between items-center text-slate-600">
+                      <span className="text-sm font-medium">Ara Toplam</span>
+                      <span className="font-semibold">{calculateTotal().toFixed(2)} ₺</span>
+                    </div>
+                    {/* Paket Servis Ücreti - 100 ₺ */}
+                    <div className="flex justify-between items-center gap-4 py-3.5 px-4 rounded-xl bg-gradient-to-r from-slate-50 to-zinc-50 border border-slate-200/80 shadow-sm">
+                      <span className="text-sm font-semibold text-slate-800 flex items-center gap-2.5">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/80 border border-slate-200 shadow-sm">
+                          <Package className="w-4 h-4 text-slate-600" strokeWidth={2} />
+                        </span>
+                        100 ₺ Paket Servis Ücreti
+                      </span>
+                      <span className="font-bold text-slate-900 tabular-nums">100,00 ₺</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+                      <span className="text-base font-semibold text-gray-900">Ödenecek Tutar</span>
+                      <span className="text-xl font-bold text-rose-600 tabular-nums">
+                        {(calculateTotal() + PAKET_SERVIS_UCRETI).toFixed(2)} ₺
                       </span>
                     </div>
                     {minimumOrderAmount > 0 && (

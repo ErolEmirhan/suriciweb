@@ -73,6 +73,7 @@ import framwaffleJpg from '../assets/framwaffle.jpg'
 import antepkruJpg from '../assets/antepkru.jpg'
 import framkruJpg from '../assets/framkru.jpg'
 import v60Jpg from '../assets/V60.jpg'
+import btiramisuJpg from '../assets/btiramisu.jpg'
 
 export default function MenuNew() {
   const [categories, setCategories] = useState([])
@@ -669,6 +670,10 @@ export default function MenuNew() {
       }
       if (productName.includes('incir')) {
         return incirJpeg
+      }
+      // Belçika Çikolatalı Tiramisu (normalize: belcika, tiramisu)
+      if ((productName.includes('belcika') || productName.includes('belçika')) && productName.includes('tiramisu')) {
+        return btiramisuJpg
       }
       if (productName.includes('tiramisu')) {
         return tiramisuJpeg

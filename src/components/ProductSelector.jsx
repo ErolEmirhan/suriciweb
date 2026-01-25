@@ -815,11 +815,9 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {categoryProducts.map((product) => {
                 const cartQuantity = getCartQuantity(product.id)
-                // Online sipariş modunda online fiyatı kullan
                 const onlineProduct = isOnlineOrder ? onlineProducts[product.id] : null
-                const displayPrice = isOnlineOrder && onlineProduct?.online_price 
-                  ? onlineProduct.online_price 
-                  : product.price
+                // Menü fiyatı (online özel fiyat yok)
+                const displayPrice = product.price
                 const isOutOfStock = isOnlineOrder && onlineProduct?.is_out_of_stock_online === true
                 
                 const isSelected = selectedProductId === product.id
