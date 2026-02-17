@@ -430,6 +430,14 @@ export default function MenuNew() {
 
   // Ürün görseli URL'sini al
   const getProductImage = (product, categoryName) => {
+    // EN ÖNCELİK: Firebase'de base64 görsel varsa her şeyin üstünde kullan
+    if (product.image && typeof product.image === 'string' && product.image.startsWith('data:image/')) {
+      return product.image
+    }
+    if (product.imageUrl && typeof product.imageUrl === 'string' && product.imageUrl.startsWith('data:image/')) {
+      return product.imageUrl
+    }
+    
     // Türkçe karakterleri normalize et (İ -> i, ı -> i, ş -> s, ç -> c, ğ -> g, ü -> u, ö -> o)
     const normalizeTurkish = (str) => {
       if (!str) return ''
@@ -795,6 +803,10 @@ export default function MenuNew() {
         return iceceksJpg
       }
       const cachedImage = productImages[product.id]
+      // Cache'de base64 data URL varsa kullan
+      if (typeof cachedImage === 'string' && cachedImage.startsWith('data:image/')) {
+        return cachedImage
+      }
       // Unsplash URL'lerini filtrele
       if (typeof cachedImage === 'string' && cachedImage.includes('unsplash.com')) {
         return makaraWebp

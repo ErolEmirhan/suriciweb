@@ -365,8 +365,15 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
         .trim()
     }
     
-    // İÇECEK KATEGORİLERİ İÇİN EN ÖNCELİKLİ KONTROL - HİÇBİR ŞEY KONTROL ETMEDEN ÖNCE
-    // Basitleştirilmiş kontrol: Sadece "icecek" kelimesini kontrol et
+    // EN ÖNCELİK: Firebase'de base64 görsel varsa her şeyin üstünde kullan
+    if (product.image && typeof product.image === 'string' && product.image.startsWith('data:image/')) {
+      return product.image
+    }
+    if (product.imageUrl && typeof product.imageUrl === 'string' && product.imageUrl.startsWith('data:image/')) {
+      return product.imageUrl
+    }
+    
+    // İÇECEK KATEGORİLERİ İÇİN ÖNCELİKLİ KONTROL
     const checkIfIcecek = (catName) => {
       if (!catName) return false
       const normalized = normalizeTurkish(catName)
@@ -655,6 +662,10 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
         return iceceksJpg
       }
       const cachedImage = productImages[product.id]
+      // Cache'de base64 data URL varsa kullan
+      if (typeof cachedImage === 'string' && cachedImage.startsWith('data:image/')) {
+        return cachedImage
+      }
       if (typeof cachedImage === 'string' && cachedImage.includes('unsplash.com')) {
         return makaraWebp
       }

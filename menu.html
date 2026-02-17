@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Makara Menü – A3 Baskı (6 Sayfa)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,600;0,700;0,800;1,600;1,700;1,800&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    @page { size: 297mm 420mm; margin: 0; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; }
+      .page {
+        width: 297mm !important;
+        height: 420mm !important;
+        min-height: 420mm !important;
+        max-width: 297mm !important;
+        margin: 0 !important;
+        padding: 10mm !important;
+        page-break-after: always;
+        box-shadow: none;
+      }
+      .page:last-child { page-break-after: auto; }
+    }
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #2d1f24;
+      color: #3d2a32;
+      padding: 0;
+      margin: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .page {
+      width: 297mm;
+      min-height: 420mm;
+      height: 420mm;
+      max-width: 100%;
+      padding: 8mm 12mm 10mm;
+      margin: 0 auto 8px;
+      position: relative;
+      background: linear-gradient(165deg, #fff8f9 0%, #fef2f4 25%, #fce8ec 60%, #f9e0e6 100%);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(180,120,130,0.15);
+      position: relative;
+    }
+    .page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(200,140,155,0.2) 1px, transparent 0);
+      background-size: 20px 20px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .page::after {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      border: 1px solid rgba(180,100,115,0.25);
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .page-header, .page-content { position: relative; z-index: 1; }
+    .page-header {
+      text-align: center;
+      margin-bottom: 4px;
+      padding-bottom: 4px;
+      border-bottom: none;
+      flex-shrink: 0;
+      position: relative;
+      margin-top: 48px;
+    }
+    .page-header::before {
+      content: '◆';
+      position: absolute;
+      left: 50%;
+      bottom: -2px;
+      transform: translateX(-50%);
+      font-size: 6px;
+      color: #b8860b;
+      letter-spacing: 12px;
+      opacity: 0.9;
+    }
+    .page-header::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(184,134,11,0.4), #b8860b, rgba(184,134,11,0.4), transparent);
+      border-radius: 1px;
+    }
+    .page-header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      color: #5c3d45;
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+    }
+    .page-header .sub {
+      font-size: 9px;
+      font-weight: 700;
+      color: #8b6b75;
+      margin-top: 2px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .page-header-logo {
+      display: block;
+      margin: 0 auto 6px;
+      max-height: 42px;
+      height: auto;
+      width: auto;
+      object-fit: contain;
+    }
+    .page-content {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: minmax(min-content, 228px);
+      row-gap: 2px;
+      column-gap: 12px;
+      flex: 1 1 auto;
+      align-content: start;
+      min-height: 0;
+      width: 100%;
+      margin-bottom: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .page-content--motif {
+      grid-auto-rows: minmax(min-content, 202px);
+    }
+    .page-content--motif .product-card { height: 202px; }
+    .page-content--motif .product-img-wrap { width: 108px; height: 108px; }
+    .page-content--motif .product-name { font-size: 13px; }
+    .page-content--motif .product-price { font-size: 16px; min-height: 26px; padding: 3px 10px 4px; }
+    .page-content--motif::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle at 20px 20px, rgba(183,110,122,0.04) 1.5px, transparent 1.5px),
+        linear-gradient(135deg, transparent 44%, rgba(200,140,155,0.02) 50%, transparent 56%);
+      background-size: 36px 36px, 24px 24px;
+    }
+    .page-content--motif > * { position: relative; z-index: 1; }
+    .page-content--two-cats .section-grid {
+      grid-auto-rows: minmax(198px, 198px);
+      gap: 3px 12px;
+    }
+    .page-content--two-cats .product-card { height: 198px; }
+    .page-content--two-cats .product-img-wrap { width: 112px; height: 112px; }
+    .page-content--two-cats .product-name { font-size: 14px; }
+    .page-content--two-cats .product-price { font-size: 16px; min-height: 28px; padding: 4px 12px 5px; }
+    .page-content-decorative {
+      grid-column: 1 / -1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 32px;
+      background: linear-gradient(180deg, rgba(255,248,250,0.6) 0%, rgba(252,238,242,0.4) 50%, transparent 100%);
+      position: relative;
+    }
+    .page-content-decorative::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 1px 1px, rgba(200,140,155,0.08) 1px, transparent 0);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+    .page-content-decorative-inner {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      max-width: 420px;
+    }
+    .page-content-decorative-tagline {
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b4d56;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+    .page-content-decorative-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px 20px;
+    }
+    .page-content-decorative-badge {
+      display: inline-block;
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #5c3d45;
+      letter-spacing: 0.12em;
+      padding: 8px 18px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid rgba(183,110,122,0.25);
+      border-radius: 100px;
+      box-shadow: 0 2px 10px rgba(158,90,103,0.08);
+    }
+    .menu-category {
+      grid-column: 1 / -1;
+      font-family: 'Poppins', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      padding: 10px 20px 11px;
+      margin: 0;
+      letter-spacing: 0.12em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #8b4a56 0%, #9e5a67 25%, #b76e7a 60%, #c98a94 100%);
+      border-radius: 10px;
+      border: none;
+      box-shadow: 0 4px 20px rgba(139,74,86,0.45), 0 2px 6px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      text-align: left;
+      width: fit-content;
+      display: inline-block;
+      box-sizing: border-box;
+      vertical-align: top;
+      align-self: start;
+      min-height: 0;
+      position: relative;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .menu-category::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 55%;
+      background: linear-gradient(180deg, transparent, rgba(255,255,255,0.6), transparent);
+      border-radius: 2px;
+    }
+    .menu-category:first-of-type { margin-top: 0; }
+    .menu-category--center {
+      text-align: center;
+      width: 100%;
+      display: block;
+    }
+    .menu-category--center::before { display: none; }
+    .menu-section {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: stretch;
+      align-self: start;
+      position: relative;
+      isolation: isolate;
+    }
+    .menu-section::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      border-radius: 12px;
+      background-image:
+        radial-gradient(circle at 50% 50%, rgba(200,140,155,0.04) 1px, transparent 1px),
+        radial-gradient(circle at 10px 10px, rgba(183,110,122,0.06) 1.5px, transparent 1.5px),
+        linear-gradient(135deg, transparent 42%, rgba(183,110,122,0.03) 50%, transparent 58%),
+        linear-gradient(225deg, transparent 42%, rgba(183,110,122,0.03) 50%, transparent 58%);
+      background-size: 100% 100%, 32px 32px, 28px 28px, 28px 28px;
+    }
+    .menu-section .menu-category,
+    .menu-section .section-grid,
+    .menu-section .drink-list { position: relative; z-index: 1; }
+    .menu-section .menu-category { margin-bottom: 0; }
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: minmax(228px, 228px);
+      gap: 5px 12px;
+      width: 100%;
+    }
+    .section-grid--compact {
+      grid-auto-rows: minmax(218px, 218px);
+      gap: 4px 12px;
+    }
+    .section-grid--compact .product-card { height: 218px; }
+    .section-grid--compact .product-img-wrap { width: 120px; height: 120px; margin: 2px 0 0; }
+    .section-grid--compact .product-name { font-size: 14px; }
+    .section-grid--compact .product-price { font-size: 17px; min-height: 26px; margin-bottom: 3px; padding: 4px 10px 5px; }
+    .product-card {
+      background: transparent;
+      border-radius: 0;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 228px;
+      border: none;
+      page-break-inside: avoid;
+      box-shadow: none;
+    }
+    .product-img-wrap {
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin: 0 0 0 0;
+      background: linear-gradient(145deg, #fdf0f3 0%, #f5e0e6 100%);
+      flex-shrink: 0;
+      box-shadow: 0 6px 22px rgba(158,90,103,0.18), 0 0 0 2px rgba(201,138,148,0.4), inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+    .product-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      vertical-align: bottom;
+    }
+    .product-info {
+      width: 100%;
+      padding: 0 8px;
+      flex: 0 0 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      margin: 0;
+      gap: 0;
+    }
+    .product-name {
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      font-style: italic;
+      color: #4a3540;
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+      text-align: center;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin: 0 0 2px 0;
+    }
+    .product-price {
+      font-family: 'Poppins', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #5c3d45;
+      letter-spacing: 0.03em;
+      text-align: center;
+      flex-shrink: 0;
+      min-height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      padding: 5px 14px 6px;
+      background: linear-gradient(180deg, #fef4f6 0%, #fae8ec 100%);
+      border-radius: 8px;
+      margin: 0 0 4px 0;
+      box-shadow: 0 2px 8px rgba(158,90,103,0.2), inset 0 1px 0 rgba(255,255,255,0.9);
+      border: 1.5px solid rgba(183,110,122,0.5);
+    }
+    .drink-list {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0 44px;
+      align-self: start;
+      width: 100%;
+    }
+    .drink-list-col {
+      display: flex;
+      flex-direction: column;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(183,110,122,0.35);
+      background: linear-gradient(180deg, #fef6f8 0%, #fceef2 100%);
+      box-shadow: 0 2px 14px rgba(158,90,103,0.1), inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+    .drink-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(183,110,122,0.12);
+      font-family: 'Poppins', sans-serif;
+    }
+    .drink-list-item:nth-child(even) { background: rgba(255,255,255,0.4); }
+    .drink-list-item:last-child { border-bottom: none; }
+    .drink-list-item .drink-name {
+      font-size: 14px;
+      font-weight: 600;
+      font-style: italic;
+      color: #4a3540;
+      line-height: 1.35;
+    }
+    .drink-list-item .drink-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: #9e5a67;
+      letter-spacing: 0.02em;
+    }
+    .page-fill {
+      flex: 0 0 auto;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      position: relative;
+      z-index: 1;
+      background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(255,255,255,0.6) 0%, rgba(252,232,238,0.35) 50%, rgba(249,224,230,0.2) 100%);
+    }
+    .page-fill::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 1px 1px, rgba(200,140,155,0.12) 1px, transparent 0);
+      background-size: 24px 24px;
+      pointer-events: none;
+    }
+    .page-fill-inner {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .page-fill-logo {
+      display: block;
+      margin: 0 auto 16px;
+      max-height: 56px;
+      width: auto;
+      object-fit: contain;
+    }
+    .page-fill-line {
+      display: block;
+      width: 72px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(183,110,122,0.5), #b8860b, rgba(183,110,122,0.5), transparent);
+      margin: 14px auto;
+      border-radius: 1px;
+    }
+    .page-fill-tag {
+      font-family: 'Poppins', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      font-style: italic;
+      color: #5c3d45;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+    .page-fill-brand {
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #8b6b75;
+      letter-spacing: 0.35em;
+      margin-top: 6px;
+      text-transform: uppercase;
+    }
+    .page-footer-badges {
+      position: absolute;
+      top: 35px;
+      left: 12mm;
+      right: 12mm;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      z-index: 10;
+    }
+    .page-footer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px 9px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(252,238,242,0.9) 100%);
+      border: 1px solid rgba(183,110,122,0.3);
+      box-shadow: 0 2px 12px rgba(158,90,103,0.12);
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: #5c3d45;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+    }
+    .page-footer-badge svg {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      opacity: 0.9;
+    }
+    .page-footer-badge--insta { order: 1; }
+    .page-footer-badge--web { order: 2; }
+    .page-number {
+      margin-top: auto;
+      flex-shrink: 0;
+      text-align: center;
+      padding: 10px 0 12px;
+      position: relative;
+      z-index: 1;
+    }
+    .page-number-inner {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(252,235,239,0.8) 100%);
+      border: 1.5px solid rgba(183,110,122,0.45);
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      font-style: italic;
+      color: #5c3d45;
+      box-shadow: 0 2px 12px rgba(158,90,103,0.18);
+    }
+      </style>
+</head>
+<body>
+
+  <!-- SAYFA 1: Kapak + Makaralar + Fransız Pastalar (başlangıç) -->
+  <div class="page">
+    <div class="page-footer-badges">
+      <div class="page-footer-badge page-footer-badge--insta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        <span>makara.patisserie.coffee</span>
+      </div>
+      <div class="page-footer-badge page-footer-badge--web">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>www.makara.network</span>
+      </div>
+    </div>
+    <header class="page-header">
+      <img class="page-header-logo" src="src/assets/1 (7).webp" alt="Makara" />
+      <h1>MAKARA</h1>
+      <p class="sub">Menü · Sayfa 1</p>
+    </header>
+    <div class="page-content page-content--motif">
+      <div class="menu-category">Makaralar</div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (29).webp" alt="Antep Fıstıklı Makara" /></div>
+        <div class="product-info"><div class="product-name">Antep Fıstıklı Makara</div><div class="product-price">₺395.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (27).webp" alt="Çilekli Makara" /></div>
+        <div class="product-info"><div class="product-name">Çilekli Makara</div><div class="product-price">₺380.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (25).webp" alt="Lotuslu Makara" /></div>
+        <div class="product-info"><div class="product-name">Lotuslu Makara</div><div class="product-price">₺380.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/cupbar.png" alt="Makara Cup Bardak" /></div>
+        <div class="product-info"><div class="product-name">Makara Cup Bardak</div><div class="product-price">₺380.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (24).webp" alt="Oreolu Makara" /></div>
+        <div class="product-info"><div class="product-name">Oreolu Makara</div><div class="product-price">₺380.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (25).webp" alt="Tarçınlı Belçika Çikolatalı Makara" /></div>
+        <div class="product-info"><div class="product-name">Tarçınlı Belçika Çikolatalı Makara</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="menu-category">Fransız Pastalar</div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/antep.jpeg" alt="Antep Fıstığı Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Antep Fıstığı Fransız Pasta</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/armut.jpg" alt="Armut fransız pasta" /></div>
+        <div class="product-info"><div class="product-name">Armut fransız pasta</div><div class="product-price">₺320.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (15).webp" alt="Badem Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Badem Fransız Pasta</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/bogurt.jpeg" alt="Böğürtlen Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Böğürtlen Fransız Pasta</div><div class="product-price">₺330.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (18).webp" alt="Çilek Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Çilek Fransız Pasta</div><div class="product-price">₺330.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/elma.jpg" alt="Elma fırasız pasta" /></div>
+        <div class="product-info"><div class="product-name">Elma fırasız pasta</div><div class="product-price">₺330.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/fındık.jpeg" alt="Fındık" /></div>
+        <div class="product-info"><div class="product-name">Fındık</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (20).webp" alt="Frambuaz Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Frambuaz Fransız Pasta</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (21).webp" alt="Kahve Çekirdeği Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Kahve Çekirdeği Fransız Pasta</div><div class="product-price">₺280.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (19).webp" alt="Limon Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Limon Fransız Pasta</div><div class="product-price">₺330.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/mango.jpeg" alt="Mango Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Mango Fransız Pasta</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/porta.jpg" alt="Portakal Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Portakal Fransız Pasta</div><div class="product-price">₺330.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/vanilya.png" alt="Vanilya Çubuğu Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Vanilya Çubuğu Fransız Pasta</div><div class="product-price">₺295.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (22).webp" alt="Yaban Mersini Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Yaban Mersini Fransız Pasta</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/yer.jpg" alt="Yer Fıstığı Fransız Pasta" /></div>
+        <div class="product-info"><div class="product-name">Yer Fıstığı Fransız Pasta</div><div class="product-price">₺290.00</div></div>
+      </div>
+    </div>
+    <div class="page-number"><span class="page-number-inner">1</span></div>
+  </div>
+
+  <!-- SAYFA 2: Sütlü Tatlılar -->
+  <div class="page">
+    <div class="page-footer-badges">
+      <div class="page-footer-badge page-footer-badge--insta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        <span>makara.patisserie.coffee</span>
+      </div>
+      <div class="page-footer-badge page-footer-badge--web">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>www.makara.network</span>
+      </div>
+    </div>
+    <header class="page-header">
+      <img class="page-header-logo" src="src/assets/1 (7).webp" alt="Makara" />
+      <h1>MAKARA</h1>
+      <p class="sub">Menü · Sayfa 2</p>
+    </header>
+    <div class="page-content">
+      <div class="menu-section">
+        <div class="menu-category">Sütlü Tatlılar ve Pastalar</div>
+        <div class="section-grid section-grid--compact">
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (4).webp" alt="Alaçatı Muhallebi" /></div>
+        <div class="product-info"><div class="product-name">Alaçatı Muhallebi</div><div class="product-price">₺280.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/fistikcup.jpeg" alt="Antep fıstıklı Cup" /></div>
+        <div class="product-info"><div class="product-name">Antep fıstıklı Cup</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/keskul.jpeg" alt="Antep Fıstıklı Keşkül" /></div>
+        <div class="product-info"><div class="product-name">Antep Fıstıklı Keşkül</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/baklava.jpg" alt="Baklava Aşkı" /></div>
+        <div class="product-info"><div class="product-name">Baklava Aşkı</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/tiramisu.jpeg" alt="Belçika Çikolatalı Tiramisu" /></div>
+        <div class="product-info"><div class="product-name">Belçika Çikolatalı Tiramisu</div><div class="product-price">₺380.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (6).webp" alt="Çilekli Magnolya" /></div>
+        <div class="product-info"><div class="product-name">Çilekli Magnolya</div><div class="product-price">₺250.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/fracup.png" alt="Frambuazlı Cup" /></div>
+        <div class="product-info"><div class="product-name">Frambuazlı Cup</div><div class="product-price">₺330.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/malagaframbuaz.jpg" alt="Frambuazlı Malaga" /></div>
+        <div class="product-info"><div class="product-name">Frambuazlı Malaga</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/fran.jpeg" alt="Fransız Profiterol" /></div>
+        <div class="product-info"><div class="product-name">Fransız Profiterol</div><div class="product-price">₺350.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/lotuscup.jpg" alt="Lotus Cup" /></div>
+        <div class="product-info"><div class="product-name">Lotus Cup</div><div class="product-price">₺320.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/mixprofiterol.jpg" alt="Mix Profiterol" /></div>
+        <div class="product-info"><div class="product-name">Mix Profiterol</div><div class="product-price">₺350.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (9).webp" alt="Muzlu Malaga" /></div>
+        <div class="product-info"><div class="product-name">Muzlu Malaga</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/oreocup.jpg" alt="Oreo cup" /></div>
+        <div class="product-info"><div class="product-name">Oreo cup</div><div class="product-price">₺320.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/brest.jpeg" alt="Paris Brest" /></div>
+        <div class="product-info"><div class="product-name">Paris Brest</div><div class="product-price">₺360.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (13).webp" alt="San Sebastian" /></div>
+        <div class="product-info"><div class="product-name">San Sebastian</div><div class="product-price">₺380.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (11).webp" alt="Snickers" /></div>
+        <div class="product-info"><div class="product-name">Snickers</div><div class="product-price">₺340.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/spangle.jpg" alt="Supangle" /></div>
+        <div class="product-info"><div class="product-name">Supangle</div><div class="product-price">₺280.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/tiramisu.jpeg" alt="Tiramisu" /></div>
+        <div class="product-info"><div class="product-name">Tiramisu</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (13).webp" alt="Yaban Mersinli San Sebastian" /></div>
+        <div class="product-info"><div class="product-name">Yaban Mersinli San Sebastian</div><div class="product-price">₺380.00</div></div>
+      </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-number"><span class="page-number-inner">2</span></div>
+  </div>
+
+  <!-- SAYFA 3: Kruvasanlar + Waffle -->
+  <div class="page">
+    <div class="page-footer-badges">
+      <div class="page-footer-badge page-footer-badge--insta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        <span>makara.patisserie.coffee</span>
+      </div>
+      <div class="page-footer-badge page-footer-badge--web">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>www.makara.network</span>
+      </div>
+    </div>
+    <header class="page-header">
+      <img class="page-header-logo" src="src/assets/1 (7).webp" alt="Makara" />
+      <h1>MAKARA</h1>
+      <p class="sub">Menü · Sayfa 3</p>
+    </header>
+    <div class="page-content page-content--two-cats">
+      <div class="menu-section">
+        <div class="menu-category">Kruvasanlar</div>
+        <div class="section-grid">
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/antepkru.jpg" alt="Antep Fıstıklı Kruvasan" /></div>
+        <div class="product-info"><div class="product-name">Antep Fıstıklı Kruvasan</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/framkru.jpg" alt="Frambuazlı-Çilekli Kruvasan" /></div>
+        <div class="product-info"><div class="product-name">Frambuazlı-Çilekli Kruvasan</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (26).webp" alt="Lotuslu Kruvasan" /></div>
+        <div class="product-info"><div class="product-name">Lotuslu Kruvasan</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (26).webp" alt="Meyveli Belçika Çikolatalı kruvasan" /></div>
+        <div class="product-info"><div class="product-name">Meyveli Belçika Çikolatalı kruvasan</div><div class="product-price">₺250.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (26).webp" alt="Oreo Kruvasan" /></div>
+        <div class="product-info"><div class="product-name">Oreo Kruvasan</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (26).webp" alt="Sade Kremalı-Çikolatalı Kruvasan" /></div>
+        <div class="product-info"><div class="product-name">Sade Kremalı-Çikolatalı Kruvasan</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/1 (26).webp" alt="Sade Kuruvasan" /></div>
+        <div class="product-info"><div class="product-name">Sade Kuruvasan</div><div class="product-price">₺190.00</div></div>
+      </div>
+        </div>
+      </div>
+      <div class="menu-section">
+        <div class="menu-category">Waffle</div>
+        <div class="section-grid">
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/bardak.jpg" alt="Antep Fıstıklı Bardak Waffle" /></div>
+        <div class="product-info"><div class="product-name">Antep Fıstıklı Bardak Waffle</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/klasik.jpg" alt="Antep Fıstıklı Klasik Waffle" /></div>
+        <div class="product-info"><div class="product-name">Antep Fıstıklı Klasik Waffle</div><div class="product-price">₺390.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/kova.jpg" alt="Antep Fıstıklı Kova Waffle" /></div>
+        <div class="product-info"><div class="product-name">Antep Fıstıklı Kova Waffle</div><div class="product-price">₺350.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/bardak.jpg" alt="Frambuaz-Çilek Bardak Waffle" /></div>
+        <div class="product-info"><div class="product-name">Frambuaz-Çilek Bardak Waffle</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/framwaffle.jpg" alt="Frambuaz-Çilek Klasik Waffle" /></div>
+        <div class="product-info"><div class="product-name">Frambuaz-Çilek Klasik Waffle</div><div class="product-price">₺390.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/kova.jpg" alt="Frambuaz-Çilek Kova Waffle" /></div>
+        <div class="product-info"><div class="product-name">Frambuaz-Çilek Kova Waffle</div><div class="product-price">₺350.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/bardak.jpg" alt="Lotus Bardak Waffle" /></div>
+        <div class="product-info"><div class="product-name">Lotus Bardak Waffle</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/klasik.jpg" alt="Lotus Klasik Waffle" /></div>
+        <div class="product-info"><div class="product-name">Lotus Klasik Waffle</div><div class="product-price">₺390.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/kova.jpg" alt="Lotus Kova Waffle" /></div>
+        <div class="product-info"><div class="product-name">Lotus Kova Waffle</div><div class="product-price">₺350.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/bardak.jpg" alt="Oreo Bardak Waffle" /></div>
+        <div class="product-info"><div class="product-name">Oreo Bardak Waffle</div><div class="product-price">₺290.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/klasik.jpg" alt="Oreo Klasik Waffle" /></div>
+        <div class="product-info"><div class="product-name">Oreo Klasik Waffle</div><div class="product-price">₺390.00</div></div>
+      </div>
+      <div class="product-card">
+        <div class="product-img-wrap"><img src="src/assets/kova.jpg" alt="Oreo Kova Waffle" /></div>
+        <div class="product-info"><div class="product-name">Oreo Kova Waffle</div><div class="product-price">₺350.00</div></div>
+      </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-fill">
+      <div class="page-fill-inner">
+        <img class="page-fill-logo" src="src/assets/1 (7).webp" alt="Makara" />
+        <span class="page-fill-line"></span>
+        <p class="page-fill-tag">Afiyet olsun</p>
+        <p class="page-fill-brand">MAKARA</p>
+        <span class="page-fill-line"></span>
+      </div>
+    </div>
+    <div class="page-number"><span class="page-number-inner">3</span></div>
+  </div>
+
+  <!-- SAYFA 4: Sıcak İçecekler -->
+  <div class="page">
+    <div class="page-footer-badges">
+      <div class="page-footer-badge page-footer-badge--insta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        <span>makara.patisserie.coffee</span>
+      </div>
+      <div class="page-footer-badge page-footer-badge--web">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>www.makara.network</span>
+      </div>
+    </div>
+    <header class="page-header">
+      <img class="page-header-logo" src="src/assets/1 (7).webp" alt="Makara" />
+      <h1>MAKARA</h1>
+      <p class="sub">Menü · Sayfa 4</p>
+    </header>
+    <div class="page-content">
+      <div class="menu-section">
+        <div class="menu-category menu-category--center">Sıcak İçecekler</div>
+      <div class="drink-list">
+        <div class="drink-list-col">
+          <div class="drink-list-item"><span class="drink-name">Americano</span><span class="drink-price">₺140.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Badem Latte</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Bal Kabaklı Latte</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Black Eye</span><span class="drink-price">₺160.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Cappucino</span><span class="drink-price">₺160.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Caramel Mocha</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Chai Tea Latte</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Cortado</span><span class="drink-price">₺160.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Crema Latte</span><span class="drink-price">₺190.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Çay</span><span class="drink-price">₺50.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Double Espresso</span><span class="drink-price">₺160.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Double Menengiç Kahvesi</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Double Türk kahvesi</span><span class="drink-price">₺190.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Espresso</span><span class="drink-price">₺90.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Fındıklı Latte</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Fıstıklı Latte</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Filtre Kahve</span><span class="drink-price">₺140.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Fincan Çay</span><span class="drink-price">₺75.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Flat White</span><span class="drink-price">₺160.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Frambuazlı Latte</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Hindistan Cevizli Latte</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ihlamur Çayı</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Karamel Latte</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Karamel macchiato</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Kış Çayı</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Kurabiyeli Latte</span><span class="drink-price">₺180.00</span></div>
+        </div>
+        <div class="drink-list-col">
+          <div class="drink-list-item"><span class="drink-name">Latte</span><span class="drink-price">₺160.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Madagascar Vanilya latte</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Melisa Çayı</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Mocha</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Nane Limon Çayı</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Nar Çiçeği Çayı</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Papatya Çayı</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Pecan Ceviz Latte</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Red Eye</span><span class="drink-price">₺160.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Salep</span><span class="drink-price">₺160.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Sıcak Çikolata (Callebaut)</span><span class="drink-price">₺195.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">süt</span><span class="drink-price">₺100.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Sütlü Filtre Kahve</span><span class="drink-price">₺150.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Toffenut Latte</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Türk Kahvesi</span><span class="drink-price">₺140.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">V60 Brazilian</span><span class="drink-price">₺200.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">V60 Colombian</span><span class="drink-price">₺200.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">V60 Ethiopian</span><span class="drink-price">₺200.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Vanilya Latte</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">White Mocha</span><span class="drink-price">₺180.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Yeşil Çay</span><span class="drink-price">₺180.00</span></div>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="page-fill">
+      <div class="page-fill-inner">
+        <img class="page-fill-logo" src="src/assets/1 (7).webp" alt="Makara" />
+        <span class="page-fill-line"></span>
+        <p class="page-fill-tag">Afiyet olsun</p>
+        <p class="page-fill-brand">MAKARA</p>
+        <span class="page-fill-line"></span>
+      </div>
+    </div>
+    <div class="page-number"><span class="page-number-inner">4</span></div>
+  </div>
+
+  <!-- SAYFA 5: Soğuk İçecekler -->
+  <div class="page">
+    <div class="page-footer-badges">
+      <div class="page-footer-badge page-footer-badge--insta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        <span>makara.patisserie.coffee</span>
+      </div>
+      <div class="page-footer-badge page-footer-badge--web">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>www.makara.network</span>
+      </div>
+    </div>
+    <header class="page-header">
+      <img class="page-header-logo" src="src/assets/1 (7).webp" alt="Makara" />
+      <h1>MAKARA</h1>
+      <p class="sub">Menü · Sayfa 5</p>
+    </header>
+    <div class="page-content">
+      <div class="menu-section">
+        <div class="menu-category menu-category--center">Soğuk İçecekler</div>
+      <div class="drink-list">
+        <div class="drink-list-col">
+          <div class="drink-list-item"><span class="drink-name">Churchill</span><span class="drink-price">₺100.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Çilekli Limonata</span><span class="drink-price">₺165.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Elmalı Soda</span><span class="drink-price">₺60.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Americano</span><span class="drink-price">₺140.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Badem Latte</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Bal Kabaklı Latte</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Crema Latte</span><span class="drink-price">₺200.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Fındıklı Latte</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Fıstıklı Latte</span><span class="drink-price">₺190.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Frambuazlı latte</span><span class="drink-price">₺190.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Hindistan Cevizli Latte</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Karamel Latte</span><span class="drink-price">₺185.00</span></div>
+        </div>
+        <div class="drink-list-col">
+          <div class="drink-list-item"><span class="drink-name">Ice Karamel Mocha</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Kurabiyeli Latte</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Madagascar Vanilya Latte</span><span class="drink-price">₺190.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Mocha</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Pecan Cevizli Latte</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Toffeenut Latte</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice Vanilya Latte</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Ice White Mocha</span><span class="drink-price">₺185.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">İce filtre</span><span class="drink-price">₺135.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">İce Latte</span><span class="drink-price">₺165.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Karpuz Çilek Soda</span><span class="drink-price">₺60.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Limonata</span><span class="drink-price">₺160.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Limonlu Soda</span><span class="drink-price">₺60.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Sade Soda</span><span class="drink-price">₺45.00</span></div>
+          <div class="drink-list-item"><span class="drink-name">Su</span><span class="drink-price">₺45.00</span></div>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="page-fill">
+      <div class="page-fill-inner">
+        <img class="page-fill-logo" src="src/assets/1 (7).webp" alt="Makara" />
+        <span class="page-fill-line"></span>
+        <p class="page-fill-tag">Afiyet olsun</p>
+        <p class="page-fill-brand">MAKARA</p>
+        <span class="page-fill-line"></span>
+      </div>
+    </div>
+    <div class="page-footer-badges">
+      <div class="page-footer-badge page-footer-badge--insta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        <span>makara.patisserie.coffee</span>
+      </div>
+      <div class="page-footer-badge page-footer-badge--web">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>www.makara.network</span>
+      </div>
+    </div>
+    <div class="page-number"><span class="page-number-inner">5</span></div>
+  </div>
+
+  <!-- SAYFA 6: Frozen + Milkshake + Frappeler -->
+  <div class="page">
+    <header class="page-header">
+      <img class="page-header-logo" src="src/assets/1 (7).webp" alt="Makara" />
+      <h1>MAKARA</h1>
+      <p class="sub">Menü · Sayfa 6</p>
+    </header>
+    <div class="page-content">
+      <div class="menu-section">
+        <div class="menu-category menu-category--center">Frozenlar</div>
+        <div class="drink-list">
+          <div class="drink-list-col">
+            <div class="drink-list-item"><span class="drink-name">Ananas Frozen</span><span class="drink-price">₺170.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Böğürtlen Frozen</span><span class="drink-price">₺170.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Çilek Frozen</span><span class="drink-price">₺170.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Frambuaz Frozen</span><span class="drink-price">₺170.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Karadut Frozen</span><span class="drink-price">₺170.00</span></div>
+          </div>
+          <div class="drink-list-col">
+            <div class="drink-list-item"><span class="drink-name">Kırmızı Orman Meyveli Frozen</span><span class="drink-price">₺170.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Mango Frozen</span><span class="drink-price">₺170.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Şeftali Frozen</span><span class="drink-price">₺170.00</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="menu-section">
+        <div class="menu-category menu-category--center">Milkshake & Smoothie</div>
+        <div class="drink-list">
+          <div class="drink-list-col">
+            <div class="drink-list-item"><span class="drink-name">Antep Fıstıklı Milkshake</span><span class="drink-price">₺190.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Çikolatalı Milkshake</span><span class="drink-price">₺175.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Çilekli Milkshake</span><span class="drink-price">₺175.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Çilekli Smoothie</span><span class="drink-price">₺210.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Frambuazlı Milkshake</span><span class="drink-price">₺180.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Karamelli Milkshake</span><span class="drink-price">₺175.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Mango Milkshake</span><span class="drink-price">₺180.00</span></div>
+          </div>
+          <div class="drink-list-col">
+            <div class="drink-list-item"><span class="drink-name">Muzlu Milkshake</span><span class="drink-price">₺175.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Oreolu Milkshake</span><span class="drink-price">₺190.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Orman Meyveli Milkshake</span><span class="drink-price">₺180.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Şeftali Milkshake</span><span class="drink-price">₺180.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Vanilyalı Milkshake</span><span class="drink-price">₺175.00</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="menu-section">
+        <div class="menu-category menu-category--center">Frappeler</div>
+        <div class="drink-list">
+          <div class="drink-list-col">
+            <div class="drink-list-item"><span class="drink-name">Bademli Frappe</span><span class="drink-price">₺190.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Cevizli Frappe</span><span class="drink-price">₺190.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Çikolatalı Frappe</span><span class="drink-price">₺190.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Fındıklı Frappe</span><span class="drink-price">₺190.00</span></div>
+          </div>
+          <div class="drink-list-col">
+            <div class="drink-list-item"><span class="drink-name">Hindistan Cevizli Frappe</span><span class="drink-price">₺190.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Karamelli Frappe</span><span class="drink-price">₺190.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Oreolu Frappe</span><span class="drink-price">₺210.00</span></div>
+            <div class="drink-list-item"><span class="drink-name">Vanilyalı Frappe</span><span class="drink-price">₺190.00</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-fill">
+      <div class="page-fill-inner">
+        <img class="page-fill-logo" src="src/assets/1 (7).webp" alt="Makara" />
+        <span class="page-fill-line"></span>
+        <p class="page-fill-tag">Afiyet olsun</p>
+        <p class="page-fill-brand">MAKARA</p>
+        <span class="page-fill-line"></span>
+      </div>
+    </div>
+    <div class="page-footer-badges">
+      <div class="page-footer-badge page-footer-badge--insta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        <span>makara.patisserie.coffee</span>
+      </div>
+      <div class="page-footer-badge page-footer-badge--web">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>www.makara.network</span>
+      </div>
+    </div>
+    <div class="page-number"><span class="page-number-inner">6</span></div>
+  </div>
+
+</body>
+</html>
