@@ -1,0 +1,11 @@
+# MAKARA – Konya Tatlıcı & Dessert Cafe
+# Google ve tüm arama motorları için
+
+User-agent: *
+Allow: /
+
+# Sitemap (tüm sayfalar – güncel URL ile değiştirin)
+Sitemap: https://www.makara.network/sitemap.xml
+
+# İsteğe bağlı: geliştirme / build çıktılarını taramadan çıkar
+# Disallow: /menu/order  # Sipariş sayfası da indekslensin (dönüşüm için)

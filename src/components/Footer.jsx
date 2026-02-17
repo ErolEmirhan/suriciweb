@@ -100,6 +100,9 @@ export default function Footer() {
         <div className="mt-16 pt-8 border-t border-gray-700/50 relative">
           {/* Subtle gradient line */}
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-500/20 to-transparent"></div>
+          <p className="text-gray-500 text-center text-xs sm:text-sm mb-4 max-w-2xl mx-auto">
+            Makara – Konya tatlıcı, Konya en iyi tatlıcılar ve Konya tatlı mekanları arasında waffle, künefe, baklava, Prag tatlısı ve Konya tatlı sipariş ile hizmetinizde. Konya dessert cafe ve Konya en iyi tatlı yerleri için Havzan, Ebusuhud Efendi Caddesi.
+          </p>
           <div className="flex flex-col md:flex-row justify-center items-center gap-4">
             <p className="text-gray-400 text-xs sm:text-sm font-medium">
               Copyright © 2025 Emirhan Erol. Tüm hakları saklıdır.

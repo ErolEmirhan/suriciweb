@@ -149,11 +149,11 @@ export default function Home() {
                style={{ boxShadow: '0 0 10px rgba(255,255,255,0.5)' }}
              />
 
-             {/* Subtitle - Refined */}
+             {/* Subtitle - Refined + SEO: Konya tatlıcı, Makara */}
              <p className="text-base md:text-lg lg:text-xl text-white font-light max-w-2xl mx-auto mb-12 leading-relaxed tracking-wide" style={{ textShadow: '0 2px 15px rgba(0,0,0,0.9), 0 1px 8px rgba(0,0,0,0.7)' }}>
                Çekya'nın meşhur Prag tatlısından, Belçika waffle'larına. 
                <br className="hidden md:block" />
-               Gerçek Belçika çikolatasıyla buluşan zarif lezzetler.
+               Gerçek Belçika çikolatasıyla buluşan zarif lezzetler — <span className="font-medium">Makara</span>, Konya'nın en iyi tatlıcısı ve Konya dessert cafe adresi.
              </p>
 
             {/* CTA Buttons - Minimal & Sophisticated */}

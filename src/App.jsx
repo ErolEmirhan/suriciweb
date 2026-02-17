@@ -11,6 +11,7 @@ import Menu from './pages/MenuNew'
 import Contact from './pages/Contact'
 import Order from './pages/Order'
 import ScrollToTop from './components/ScrollToTop'
+import SEOHead from './components/SEOHead'
 import InstagramFloatingButton from './components/InstagramFloatingButton'
 import ReservationFloatingButton from './components/ReservationFloatingButton'
 import LocationFloatingButton from './components/LocationFloatingButton'
@@ -41,6 +42,7 @@ function AppContent() {
   return (
     <>
       <ScrollToTop />
+      <SEOHead />
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-grow">
