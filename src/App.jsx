@@ -10,6 +10,7 @@ import Gallery from './pages/Gallery'
 import Menu from './pages/MenuNew'
 import Contact from './pages/Contact'
 import Order from './pages/Order'
+import Personel from './pages/Personel'
 import ScrollToTop from './components/ScrollToTop'
 import SEOHead from './components/SEOHead'
 import InstagramFloatingButton from './components/InstagramFloatingButton'
@@ -53,6 +54,7 @@ function AppContent() {
               <Route path="/galeri" element={<Gallery />} />
               <Route path="/menu" element={<Menu />} />
               <Route path="/menu/order" element={<Order />} />
+              <Route path="/personel" element={<Personel />} />
               <Route path="/iletisim" element={<Contact />} />
             </Routes>
           </AnimatePresence>
