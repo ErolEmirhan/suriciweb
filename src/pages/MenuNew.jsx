@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
 import { db } from '../config/firebase'
+import {
+  filterCategoriesForMenu,
+  filterProductsForMenu,
+} from '../config/menuVisibility'
 import { ChevronDown, ChevronUp, Sparkles, ShoppingBag } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import OrderModal from '../components/OrderModal'
@@ -150,12 +154,14 @@ export default function MenuNew() {
           // Son olarak alfabetik sırala
           return (a.name || '').localeCompare(b.name || '', 'tr')
         })
+
+        const visibleCategories = filterCategoriesForMenu(categoriesData)
         
         // LocalStorage'a kaydet
-        localStorage.setItem('makara_categories', JSON.stringify(categoriesData))
+        localStorage.setItem('makara_categories', JSON.stringify(visibleCategories))
         localStorage.setItem('makara_categories_timestamp', Date.now().toString())
         
-        setCategories(categoriesData)
+        setCategories(visibleCategories)
         setLoading(false)
       } catch (error) {
         console.error('Kategoriler yüklenirken hata:', error)
@@ -248,7 +254,7 @@ export default function MenuNew() {
           const categoryIdNum = Number(categoryId)
           
           // Tüm ürünlerden bu kategoriye ait olanları filtrele
-          const categoryProducts = allProducts.filter(product => {
+          let categoryProducts = allProducts.filter(product => {
             const productCategoryId = product.category_id
             const productCategoryIdStr = String(productCategoryId)
             const productCategoryIdNum = Number(productCategoryId)
@@ -258,6 +264,7 @@ export default function MenuNew() {
                    productCategoryIdNum === categoryIdNum ||
                    productCategoryId === categoryId
           })
+          categoryProducts = filterProductsForMenu(categoryProducts, category.name)
           
           // order_index veya order alanına göre sırala
           categoryProducts.sort((a, b) => {

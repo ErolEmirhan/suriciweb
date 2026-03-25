@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, ShoppingCart, Lock, Plus, Minus } from 'lucide-react'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
+import {
+  filterCategoriesForMenu,
+  filterProductsForMenu,
+} from '../config/menuVisibility'
 import makaraWebp from '../assets/makara.webp'
 // MenuNew'deki görselleri import et
 import makara25 from '../assets/1 (25).webp'
@@ -95,13 +99,17 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
           
           // Cache geçerliyse sadece cache'den göster
           if (now - cacheTime < cacheExpiry) {
-            const categoriesData = JSON.parse(cachedCategories)
+            let categoriesData = JSON.parse(cachedCategories)
             const productsData = JSON.parse(cachedProducts)
+            categoriesData = filterCategoriesForMenu(categoriesData)
             
             // Ürünleri kategoriye göre grupla (productsData zaten kategori ID'lerine göre gruplanmış)
             const productsByCategory = {}
             categoriesData.forEach(category => {
-              productsByCategory[category.id] = productsData[category.id] || []
+              productsByCategory[category.id] = filterProductsForMenu(
+                productsData[category.id] || [],
+                category.name
+              )
             })
             
             setCategories(categoriesData)
@@ -163,6 +171,8 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
           return (a.name || '').localeCompare(b.name || '', 'tr')
         })
 
+        const visibleCategories = filterCategoriesForMenu(categoriesData)
+
         // Ürünleri çek
         const productsRef = collection(db, 'products')
         const productsSnapshot = await getDocs(productsRef)
@@ -173,10 +183,11 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
 
         // Ürünleri kategoriye göre grupla ve sırala
         const productsByCategory = {}
-        categoriesData.forEach(category => {
-          const categoryProducts = allProducts.filter(
+        visibleCategories.forEach(category => {
+          let categoryProducts = allProducts.filter(
             product => String(product.category_id) === String(category.id)
           )
+          categoryProducts = filterProductsForMenu(categoryProducts, category.name)
           // order_index'e göre sırala
           categoryProducts.sort((a, b) => {
             const aOrder = a.order_index ?? a.order ?? 999
@@ -187,12 +198,12 @@ export default function ProductSelector({ onClose, onAddToCart, onDecreaseQuanti
           productsByCategory[category.id] = categoryProducts
         })
 
-        setCategories(categoriesData)
+        setCategories(visibleCategories)
         setProducts(productsByCategory)
         
         // İlk kategoriyi seç
-        if (categoriesData.length > 0) {
-          setSelectedCategory(categoriesData[0].id)
+        if (visibleCategories.length > 0) {
+          setSelectedCategory(visibleCategories[0].id)
         }
 
         setLoading(false)
