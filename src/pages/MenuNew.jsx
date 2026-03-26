@@ -5,6 +5,8 @@ import { db } from '../config/firebase'
 import {
   filterCategoriesForMenu,
   filterProductsForMenu,
+  isMilkshakeSmoothieCategory,
+  pickMilkshakeCategoryBannerProduct,
 } from '../config/menuVisibility'
 import { ChevronDown, ChevronUp, Sparkles, ShoppingBag } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -851,13 +853,26 @@ export default function MenuNew() {
 
   // Kategori görseli URL'sini al - Kategori içindeki ürünlerden birinin görseli
   const getCategoryImage = (category) => {
-    // Önce kategori içindeki ürünlerden birinin görselini al
     const categoryProducts = products[category.id] || []
     if (categoryProducts.length > 0) {
-      // İlk ürünün görselini al
+      // Milkshake & Smoothie: arka plan olarak Çilekli / çilek milkshake ürününün görseli
+      if (isMilkshakeSmoothieCategory(category.name)) {
+        const bannerProduct = pickMilkshakeCategoryBannerProduct(categoryProducts)
+        if (bannerProduct) {
+          const productImage = getProductImage(bannerProduct, category.name)
+          if (
+            productImage &&
+            productImage !== makaraWebp &&
+            typeof productImage === 'string' &&
+            productImage.trim() !== ''
+          ) {
+            return productImage
+          }
+        }
+      }
+      // Diğer kategoriler: ilk ürünün görseli
       const firstProduct = categoryProducts[0]
       const productImage = getProductImage(firstProduct, category.name)
-      // Ürün görseli varsa ve makaraWebp değilse kullan
       if (productImage && productImage !== makaraWebp && typeof productImage === 'string' && productImage.trim() !== '') {
         return productImage
       }
