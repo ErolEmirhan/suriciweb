@@ -51,6 +51,18 @@ export function isMenuCategoryHidden(name) {
   // Şerbetler
   if (f.includes('SERBETLER')) return true
 
+  // Zeytinyağlı yaprak sarma (DB'de "sarama" yazımı da olabilir)
+  if (
+    f.includes('ZEYTIN') &&
+    f.includes('YAPRAK') &&
+    (f.includes('SARMA') || f.includes('SARAMA'))
+  ) {
+    return true
+  }
+
+  // Börek çeşitleri
+  if (f.includes('BOREK') && f.includes('CESIT')) return true
+
   return false
 }
 
