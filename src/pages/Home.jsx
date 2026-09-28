@@ -2,10 +2,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Star } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import akis1 from '../assets/akis1.png'
-import akis2 from '../assets/akis2.png'
-import akis3 from '../assets/akis3.png'
-import akis4 from '../assets/akis4.png'
+import akis1 from '../assets/akis1.webp'
+import akis2 from '../assets/akis2.webp'
+import akis3 from '../assets/akis3.webp'
+import akis4 from '../assets/akis4.webp'
 
 export default function Home() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
