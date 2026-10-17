@@ -8,7 +8,8 @@ import {
   isMilkshakeSmoothieCategory,
   pickMilkshakeCategoryBannerProduct,
 } from '../config/menuVisibility'
-import { ChevronDown, ChevronUp, Sparkles, ShoppingBag } from 'lucide-react'
+import { ChevronDown, ChevronUp, Sparkles, ShoppingBag, Flame } from 'lucide-react'
+import { getProductCalories, parseProductContentSections } from '../utils/menuDisplayUtils'
 import { useNavigate } from 'react-router-dom'
 import OrderModal from '../components/OrderModal'
 
@@ -1629,13 +1630,35 @@ export default function MenuNew() {
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2.5 tracking-tight leading-tight">
                   {selectedProduct.name}
                 </h2>
-                {selectedProduct.description && (
-                  <p className="text-gray-600 text-sm sm:text-base mb-4 leading-relaxed">
-                    {selectedProduct.description}
-                  </p>
-                )}
-                {selectedProduct.price && (
-                  <div className="flex items-center gap-3 pt-3 border-t border-gray-200">
+                {(() => {
+                  const sections = parseProductContentSections(
+                    selectedProduct.content || selectedProduct.description,
+                    selectedProduct.name
+                  )
+                  if (sections.length === 0) return null
+                  return (
+                    <div className="mb-4 space-y-2">
+                      {sections.map((section, index) => (
+                        <div
+                          key={`${section.label ?? 'metin'}-${index}`}
+                          className="rounded-xl border border-rose-100/80 bg-rose-50/40 px-3 py-2.5"
+                        >
+                          {section.label && (
+                            <p className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-rose-600">
+                              {section.label}
+                            </p>
+                          )}
+                          <p className="whitespace-pre-line text-sm leading-relaxed text-gray-600">
+                            {section.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()}
+                {(selectedProduct.price || getProductCalories(selectedProduct)) && (
+                  <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-200">
+                    {selectedProduct.price && (
                     <span className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200/60">
                       <span className="text-lg sm:text-xl font-bold text-rose-600">
                         {typeof selectedProduct.price === 'number' 
@@ -1644,6 +1667,13 @@ export default function MenuNew() {
                         }
                       </span>
                     </span>
+                    )}
+                    {getProductCalories(selectedProduct) && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 ring-1 ring-amber-200">
+                        <Flame className="h-4 w-4" />
+                        {getProductCalories(selectedProduct)}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
