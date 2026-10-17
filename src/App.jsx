@@ -11,6 +11,7 @@ import Menu from './pages/MenuNew'
 import Contact from './pages/Contact'
 import Order from './pages/Order'
 import Personel from './pages/Personel'
+import BesinBilgileri from './pages/BesinBilgileri'
 import ScrollToTop from './components/ScrollToTop'
 import SEOHead from './components/SEOHead'
 import InstagramFloatingButton from './components/InstagramFloatingButton'
@@ -56,6 +57,7 @@ function AppContent() {
               <Route path="/menu/order" element={<Order />} />
               <Route path="/personel" element={<Personel />} />
               <Route path="/iletisim" element={<Contact />} />
+              <Route path="/besin-bilgileri" element={<BesinBilgileri />} />
             </Routes>
           </AnimatePresence>
         </main>

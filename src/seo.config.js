@@ -183,6 +183,11 @@ export const PAGE_SEO = {
     description: 'Makara\'dan Konya tatlı siparişi. Waffle, künefe, baklava online sipariş. Konya\'nın en iyi tatlıcısından hızlı teslimat.',
     canonical: `${SITE_URL}/menu/order`,
   },
+  '/besin-bilgileri': {
+    title: 'Besin ve Alerjen Bilgileri | Makara Suriçi',
+    description: 'Makara Suriçi şubesindeki tüm ürünlerin bileşen, alerjen ve enerji (kalori) bilgileri.',
+    canonical: `${SITE_URL}/besin-bilgileri`,
+  },
   '/iletisim': {
     title: 'İletişim | Makara – Adres, Telefon, Konya Tatlıcı',
     description: 'Makara iletişim: Havzan, Ebusuhud Efendi Cad. Konya. Telefon: +90 501 543 10 10. Konya tatlıcı adres ve çalışma saatleri.',
