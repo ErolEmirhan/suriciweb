@@ -108,8 +108,13 @@ function splitProduct(product) {
   return { icindekiler, alerjen, notlar, kcal: kcal ? String(kcal).trim() : null }
 }
 
-export default function BesinBilgileriListesi({ subeAdi, groups, loading, error, guncelleme }) {
+export default function BesinBilgileriListesi({ subeAdi, groups: hamGruplar, loading, error, guncelleme }) {
   const [arama, setArama] = useState('')
+  // Kategori adlarındaki ;Atıştırmalıklar; gibi süs karakterlerini temizle
+  const groups = useMemo(
+    () => hamGruplar.map((g) => ({ ...g, name: g.name.replace(/^[;\s]+|[;\s]+$/g, '') })),
+    [hamGruplar]
+  )
 
   const filtered = useMemo(() => {
     const q = arama.trim().toLocaleLowerCase('tr-TR')
